@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wood Fence Calculator - Comprehensive</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load our modular JavaScript files -->
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        label { margin-top: 0.5rem; display: block; font-weight: 500; color: #374151; /* gray-700 */ }
+        input, select {
+            width: 100%;
+            padding: 0.6rem;
+            margin-top: 0.25rem;
+            border-radius: 0.375rem; /* rounded-md */
+            border: 1px solid #D1D5DB; /* gray-300 */
+            background-color: #F9FAFB; /* gray-50 */
+        }
+        input:focus, select:focus {
+            outline: 2px solid transparent;
+            outline-offset: 2px;
+            border-color: #2563EB; /* blue-600 */
+            box-shadow: 0 0 0 2px #BFDBFE; /* blue-200 */
+        }
+        input[readonly] {
+            background-color: #E5E7EB; /* gray-200 */
+            color: #4B5563; /* gray-600 */
+            cursor: not-allowed;
+        }
+        /* Removed button styles */
+        .results-table th, .results-table td {
+            padding: 0.5rem 0.75rem; /* Adjusted padding */
+            text-align: left;
+            border-bottom: 1px solid #E5E7EB; /* gray-200 */
+            font-size: 0.875rem; /* Smaller font size */
+        }
+        .results-table th {
+            background-color: #F3F4F6; /* gray-100 */
+            font-weight: 600;
+        }
+        #grandTotal { color: #065F46; /* emerald-800 */ }
+        #errorMessage { background-color: #FEE2E2; color: #B91C1C; padding: 0.75rem; border-radius: 0.375rem; margin-top: 1rem; }
+        .input-group-title {
+            grid-column: 1 / -1; 
+            margin-top: 1.25rem;
+            margin-bottom: -0.25rem; 
+            font-size: 1.125rem; 
+            font-weight: 600;
+            color: #1F2937; 
+            border-bottom: 1px solid #D1D5DB; /* gray-300 */
+            padding-bottom: 0.375rem;
+        }
+        #pullLengthsContainer > div, #singleGateWidthsContainer > div, #doubleGateWidthsContainer > div { margin-bottom: 0.5rem; }
+        .hidden-options { display: none; } 
+    </style>
+</head>
+<body class="bg-gray-100 p-4 md:p-8">
+    <div class="max-w-4xl mx-auto bg-white p-6 md:p-10 rounded-xl shadow-2xl">
+        <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-8 text-center">Wood Fence Calculator (Comprehensive)</h1>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 mb-8">
+        <h3 class="input-group-title">General Fence Dimensions & Style</h3>
+        <div>
+            <label for="numStretches">Number of Stretches/Pulls:</label>
+            <input type="number" id="numStretches" value="1" title="Enter 0 to manually input total length. Otherwise, enter number of distinct fence lines." oninput="handleNumStretchesChange()"> 
+        </div>
+        <div>
+            <label for="totalLength">Total Calculated Length (ft):</label>
+            <input type="number" id="totalLength" value="655" readonly title="Auto-calculated from pull lengths if Number of Stretches > 0." oninput="calculateFence()"> 
+        </div>
+        
+        <div id="pullLengthsContainer" class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-0 mt-0">
+            </div>
+
+        <div>
+            <label for="fenceHeight">Height of Fence (ft):</label>
+            <select id="fenceHeight" onchange="calculateFence()">
+                <option value="4">4 ft</option>
+                <option value="5">5 ft</option>
+                <option value="6" selected>6 ft</option>
+                <option value="8">8 ft</option>
+            </select>
+        </div>
+        <div>
+            <label for="fenceOrientation">Fence Orientation:</label>
+            <select id="fenceOrientation" onchange="calculateFence()">
+                <option value="Vertical" selected>Vertical Pickets</option>
+                <option value="Horizontal">Horizontal Pickets</option>
+            </select>
+        </div>
+         <div>
+            <label for="fenceStyle">Fence Style:</label> 
+            <select id="fenceStyle" onchange="calculateFence()">
+                <option value="Privacy" selected>Privacy</option>
+                <option value="Picket Style">Picket Style</option>
+                <option value="Shadowbox">Shadowbox/Board on Board</option>
+            </select>
+        </div>
+        <div>
+            <label for="numCorners">Number of Corners:</label>
+            <input type="number" id="numCorners" value="2" oninput="calculateFence()"> 
+        </div>
+
+        <h3 class="input-group-title">Post Configuration</h3>
+         <div>
+            <label for="standardPostType">Standard Post Type/Size:</label> 
+            <select id="standardPostType" onchange="calculateFence()">
+                <option value="wood_treated_4x4" selected>Wood - 4x4 Treated</option>
+                <option value="wood_treated_4x6">Wood - 4x6 Treated</option>
+                <option value="wood_treated_6x6">Wood - 6x6 Treated</option>
+                <option value="postMaster">Post Master</option>
+                <option value="schedule20_2-3/8">Pipe - Sch 20 (2-3/8")</option>
+                <option value="schedule40_2-3/8">Pipe - Sch 40 (2-3/8")</option>
+            </select>
+        </div>
+        <div>
+            <label for="postSpacing">Post Spacing (ft):</label>
+            <input type="number" id="postSpacing" value="6" oninput="calculateFence()"> 
+        </div>
+        <div>
+            <label for="holeDepth">Depth of Post Hole (inches):</label>
+            <input type="number" id="holeDepth" value="24" oninput="calculateFence()"> 
+        </div>
+        <div>
+            <label for="holeWidth">Width of Post Hole (inches):</label>
+            <input type="number" id="holeWidth" value="9" oninput="calculateFence()"> 
+        </div>
+        <div>
+            <label for="concreteType">Concrete Type:</label>
+            <select id="concreteType" onchange="calculateFence()">
+                <option value="truck" selected>Truck (cubic yards)</option>
+                <option value="red">Red Bag (50lb)</option>
+                <option value="yellow">Yellow Bag (60lb)</option>
+            </select>
+        </div>
+        <div>
+            <label for="decorativePostCaps">Add Decorative Wood Post Caps?</label>
+            <select id="decorativePostCaps" onchange="calculateFence()">
+                <option value="no" selected>No</option>
+                <option value="yes">Yes</option>
+            </select>
+        </div>
+
+        <h3 class="input-group-title">Picket Details</h3>
+        <div>
+            <label for="picketType">Type of Picket Material:</label> 
+            <select id="picketType" onchange="calculateFence()">
+                <option value="pine" selected>Pine Picket</option>
+                <option value="cedar">Cedar Picket</option>
+                <option value="beveled_deck_board">Beveled Deck Board (Horizontal Only)</option> 
+            </select>
+        </div>
+        <div>
+            <label for="picketWidth">Picket/Board Dimension (Width for Vertical, Height for Horizontal - inches):</label>
+            <input type="number" step="0.1" id="picketWidth" value="5.5" oninput="calculateFence()"> 
+        </div>
+        <div>
+            <label for="picketGap">Picket/Board Gap (inches):</label> 
+            <input type="number" step="0.1" id="picketGap" value="0" title="Enter 0 for side-by-side. Note: Gap may be handled differently by formulas based on Style/Material." oninput="calculateFence()"> 
+        </div>
+
+        <h3 class="input-group-title">Rail Configuration</h3>
+        <div>
+            <label for="numRails">Number of Rails (for Vertical Pickets):</label>
+            <input type="number" id="numRails" value="2" oninput="calculateFence()"> 
+        </div>
+        <div>
+            <label for="railBoardLength">Rail Board Length (ft) (Used if Post Spacing is NOT 4, 6, or 8 ft):</label> 
+            <select id="railBoardLength" onchange="calculateFence()">
+                <option value="8" selected>8 ft</option>
+                <option value="10">10 ft</option>
+                <option value="12">12 ft</option>
+                <option value="16">16 ft</option>
+            </select>
+        </div>
+        
+        <h3 class="input-group-title">Baseboard/Kickboard</h3>
+        <div>
+            <label for="addBaseboard">Add Baseboard/Kickboard?</label>
+            <select id="addBaseboard" onchange="toggleBaseboardOptions(); calculateFence();"> 
+                <option value="no" selected>No</option>
+                <option value="yes">Yes</option>
+            </select>
+        </div>
+        <div id="baseboardOptionsContainer" class="hidden-options md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-x-6">
+            <div>
+                <label for="baseboardMaterialSize">Baseboard Material Size:</label>
+                <select id="baseboardMaterialSize" onchange="calculateFence()">
+                    <option value="2x4">2x4</option>
+                    <option value="2x6" selected>2x6</option>
+                    <option value="2x8">2x8</option>
+                    <option value="2x12">2x12</option> 
+                </select>
+            </div>
+            <div>
+                <label for="baseboardBoardLength">Baseboard Board Length (ft):</label>
+                <select id="baseboardBoardLength" onchange="calculateFence()">
+                    <option value="8" selected>8 ft</option>
+                    <option value="10">10 ft</option>
+                    <option value="12">12 ft</option>
+                    <option value="16">16 ft</option>
+                </select>
+            </div>
+            <div>
+                <label for="baseboardWoodType">Baseboard Wood Type:</label>
+                <select id="baseboardWoodType" onchange="calculateFence()">
+                    <option value="treated" selected>Treated Pine</option>
+                    <option value="cedar">Cedar</option>
+                </select>
+            </div>
+        </div>
+
+        <h3 class="input-group-title">Trim & Cap Boards</h3>
+        <div>
+            <label for="trimType">Type of Trim Board (e.g., on face):</label>
+            <select id="trimType" onchange="calculateFence()">
+                <option value="none" selected>None</option>
+                <option value="1x4">1x4</option>
+                <option value="2x4">2x4</option>
+            </select>
+        </div>
+        <div>
+            <label for="trimWoodType">Wood for Trim Board:</label>
+            <select id="trimWoodType" onchange="calculateFence()">
+                <option value="cedar" selected>Cedar</option>
+                <option value="pine">Pine</option>
+            </select>
+        </div>
+         <div>
+            <label for="capBoardType">Type of Cap Board (on top):</label>
+            <select id="capBoardType" onchange="calculateFence()">
+                <option value="none" selected>None</option>
+                <option value="2x4">2x4</option>
+                <option value="2x6">2x6</option>
+                <option value="2x8">2x8</option> 
+            </select>
+        </div>
+        <div>
+            <label for="capBoardWoodType">Wood for Cap Board:</label>
+            <select id="capBoardWoodType" onchange="calculateFence()">
+                <option value="cedar" selected>Cedar</option>
+                <option value="pine">Pine</option>
+            </select>
+        </div>
+
+        <h3 class="input-group-title">Gates</h3>
+        <div>
+            <label for="numSingleGates">Number of Single Gates:</label>
+            <input type="number" id="numSingleGates" value="1" oninput="handleNumSingleGatesChange()"> 
+        </div>
+        <div id="singleGateWidthsContainer" class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-0 mt-0">
+            </div>
+        <div>
+            <label for="numDoubleGates">Number of Double Gates:</label>
+            <input type="number" id="numDoubleGates" value="0" oninput="handleNumDoubleGatesChange()"> 
+        </div>
+        <div id="doubleGateWidthsContainer" class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-0 mt-0">
+            </div>
+        <div>
+            <label for="numSlidingGates">Number of Sliding/Cantilever Gates:</label>
+            <input type="number" id="numSlidingGates" value="0" oninput="handleNumSlidingGatesChange()"> 
+        </div>
+        <div id="slidingGateWidthsContainer" class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-0 mt-0">
+            </div>
+        <div>
+            <label for="useDifferentGatePosts">Use Different Gate Posts?</label>
+            <select id="useDifferentGatePosts" onchange="toggleGatePostOptions(); calculateFence();"> 
+                <option value="no" selected>No (Use Standard Posts)</option>
+                <option value="yes">Yes</option>
+            </select>
+        </div>
+        <div id="gatePostOptionsContainer" class="hidden-options md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-x-6">
+             <div>
+                <label for="gatePostType">Gate Post Type/Size:</label> 
+                <select id="gatePostType" onchange="calculateFence()">
+                     <option value="wood_treated_4x4">Wood - 4x4 Treated</option>
+                     <option value="wood_treated_4x6" selected>Wood - 4x6 Treated</option>
+                     <option value="wood_treated_6x6">Wood - 6x6 Treated</option>
+                     <option value="wood_cedar_4x4">Wood - 4x4 Cedar</option> 
+                     <option value="wood_cedar_4x6">Wood - 4x6 Cedar</option>
+                     <option value="wood_cedar_6x6">Wood - 6x6 Cedar</option>
+                     <option value="postMaster">Post Master</option>
+                     <option value="schedule20_2-3/8">Pipe - Sch 20 (2-3/8")</option>
+                     <option value="schedule40_2-3/8">Pipe - Sch 40 (2-3/8")</option>
+                </select>
+            </div>
+             </div>
+         <div>
+            <label for="useMetalGateFrames">Use Metal Frame for Gates?</label> <select id="useMetalGateFrames" onchange="calculateFence()">
+                <option value="no" selected>No (Use Wood Frame)</option>
+                <option value="yes">Yes</option>
+            </select>
+        </div>
+        <div>
+             <label for="industrialLatch">Use Industrial Gate Latch (Double Gates)?</label>
+             <select id="industrialLatch" onchange="calculateFence()">
+                 <option value="no" selected>No</option>
+                 <option value="yes">Yes</option>
+             </select>
+        </div>
+
+
+        <h3 class="input-group-title">Fasteners</h3> 
+         <div>
+            <label for="useScrews">Fasteners for Pickets:</label>
+            <select id="useScrews" onchange="calculateFence()">
+                <option value="No" selected>Nails (Pickets) / Screws (Frame)</option>
+                <option value="Yes">Screws (All)</option>
+            </select>
+        </div>
+        <div>
+            <label for="screwCalcMethod">Screw Calculation Method:</label>
+            <select id="screwCalcMethod" onchange="calculateFence()">
+                <option value="Detailed" selected>Detailed (per connection)</option>
+                <option value="Simple">Simple (Item 27 Formula)</option> 
+            </select>
+        </div>
+         </div>
+
+    <div id="results" class="mt-10">
+        <h2 class="text-2xl md:text-3xl font-bold text-gray-700 mb-6">Estimated Materials & Cost:</h2>
+        <div id="resultsTableContainer" class="overflow-x-auto shadow-md rounded-lg"></div>
+        <p id="grandTotal" class="text-2xl font-bold text-right mt-6"></p>
+        <div id="errorMessage" class="text-red-600 mt-4"></div>
+    </div>
+</div>
+
+<!-- Our JavaScript files will be loaded at the end of the body -->
+<script src="woodcalc.js"></script>
+<script src="woodcalc-helpers.js"></script>
+<script src="woodcalc-items1-10.js"></script>
+<script src="woodcalc-items11-20.js"></script>
+<script src="woodcalc-items21-33.js"></script>
+<script src="woodcalc-main.js"></script>
+
+<script>
+    // Initialize on page load
+    window.onload = () => {
+        // Initialize dynamic inputs
+        handleNumStretchesChange(); 
+        handleNumSingleGatesChange(); 
+        handleNumDoubleGatesChange();
+        handleNumSlidingGatesChange();
+        // Initialize conditional visibility
+        toggleBaseboardOptions();
+        toggleGatePostOptions();
+        // Initial calculation
+        calculateFence(); 
+    };
+</script>
+</body>
+</html>

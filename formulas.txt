@@ -1,0 +1,166 @@
+Wood calculator formulae
+
+
+Item 1 – post 
+Quantity = integer answer of [ (pull length – 1) / post spacing ] +2
+Description (part 1) – type of post
+Description (part 2) – height of fence + hold depth
+* If wooden post 4x4 4x6 6x6 or post master 
+- height of fence + hold depth <= 8.5 use 8’ post
+- height of fence + hold depth <= 10.5 use 10’ post
+- height of fence + hold depth <= 12.5 use 12’ post
+* If sch 20 or sch 40 
+- height of fence + hold depth <= 5.5 use 5’ post
+- height of fence + hold depth <= 6.5 use 6’ post
+- height of fence + hold depth <= 7.5 use 7’ post
+- height of fence + hold depth <= 8.5 use 8’ post
+- height of fence + hold depth <= 9.5 use 9’ post
+- height of fence + hold depth <= 11 use 10’6” post
+- height of fence + hold depth <= 12.5 use 12’ post
+
+
+Item 2 – 4x4x8 incense cedar gate posts
+If wooden post 4x4 4x6 6x6 AND fence height <= 6, then number of single gates x 2
+
+
+Item 3 and 4 – flanged posts 
+Quantity = number of flanged posts entered in question
+Description – 2 3/8” x height of post Sch 20
+
+
+Item 5 – Concrete
+Concrete of 1 hole = (volume of 1 hole – volume of post in the ground) *133 / 60
+Quantity of yellow/red concrete = Concrete of 1 hole * number of post * 1.1
+Quantity of truck concrete = Concrete of 1 hole * number of post * 1.1 / 59
+Description – concrete type question
+
+
+Item 6 – Picket
+Quantity = 
+If type of wooden fence is picket style
+	total linear length (with gates) *12 / (7 * width of picket / 6) 
+	If type of wooden fence is privacy
+	total linear length (with gates) *12 / (5.5 * width of picket / 6) 
+	If type of wooden fence is shadowboxed or board on board
+	total linear length (with gates) *12 / (3.5 * width of picket / 6) 
+	Description (part 1) – 8’ if height of fence = 8’, otherwise 6’ 
+Description (part 2) – type of picket
+
+
+Item 7 - Picket for gate with baseboard
+Quantity = if baseboard not ‘none’ AND height of fence = 6, then total of all gate widths (in feet) * 2.5
+Description – (if metal frame = 6’ , otherwise 8’) and type of picket
+
+
+Item 8 - 5/4 x 12 beveled deck board
+Quantity = if horizontal AND Beveled deck board, then height of fence * 12 / 5 * (total linear length) /12
+
+
+Item 9 - 2x4x8 incense cedar gate rail
+Quantity = if vertical, if single gate width greater than 48” then quantity of gate * 3, otherwise quantity of gate * 2
+
+
+Item 10 - 2x4x10 treated
+Quantity = if vertical, if double gate width greater than 8’ then quantity of gate * 3, otherwise 0
+
+
+Item 11 - 2x4x12 treated
+Quantity = (if vertical, if double gate width greater than 10’ then quantity of gate * 3) + (if post spacing = 6 AND vertical, total linear length (with gates) / 7 * number of rails + if double gate width <= 8’ then quantity of gate * 3)
+
+
+Item 12 - 2x4x16 treated
+Quantity = (if post spacing = 4, total linear length (with gates) / 3.5 * number of rails + if double gate width <= 8’, quantity of gate * 3) + (if post spacing = 8, total linear length (with gates) / 7 * number of rails + if double gate width <= 8’, quantity of gate * 3)
+
+
+Item 13 – 2x6x16 treated
+Quantity = if baseboard = 2x6, total linear length (without gates) / 16
+
+
+Item 14 – 2x12x16 treated
+Quantity = if baseboard = 2x12, total linear length (without gates) / 16
+
+
+Item 15 – Cap
+Quantity = if type of cap not “none”, total linear length (with gates) / 7
+Description – type of cap x 8 and type of wood for cap & trim
+
+
+Item 16 – Trim
+Quantity = if type of trim not “none”, total linear length (with gates) / 7
+Description – type of trim x 8 and type of wood for cap & trim
+
+
+Item 17 – Pipe grip tie/ wood to metal connector
+Quantity = if type of post is Sch 20 or Sch 40, then (number of rails + 1 if baseboard = 2x6 + 2 if baseboard = 2x12) * (Quantity of post + quantity of flanged post centered + quantity of flanged post off centered)
+
+
+Item 18 – Post cap
+Quantity = if type of post is Sch 20 or Sch 40, then quantity of post + quantity of flanged post centered + quantity of flanged post off centered
+Description – 2 3/8” 
+
+
+Item 19 – Lag screw (100pc)
+Quantity = Round up (Quantity of pipe grip tie * 4 / 100)
+Description – 1/4" x 1 1/2"
+
+
+Item 20 – Gate hardware
+Quantity = number of single gates + number of double gates
+Description – Hinge post latch kit
+
+
+Item 21 – Hinge set for double gate (NEWLY ADDED)
+Quantity = number of double gates
+
+
+Item 22 – Cane bolt set (Wooden privacy)
+Quantity = number of double gates * 2
+Description – 18”
+
+
+Item 23 – Industrial drop latch
+Quantity = if Industrial gate latch = “yes”, then number of double gates
+
+
+Item 24 – Industrial drop latch guides
+Quantity = if Industrial gate latch = “yes”, then number of double gates
+
+
+Item 25 – EMT
+Quantity = Quantity of cane bolt set (Wooden privacy)
+
+
+Item 26 – Metal frames
+Quantity = if metal frame gate = “yes”, then number of double gates * 2
+Description – if baseboard = “none”, then “no baseboard” otherwise “with baseboard”
+
+
+Item 27 – Framing screws
+Quantity = roundup (if type of post = 4x4, 4x6 or 6x6, then (quantity of 2x4x10 treated + quantity of 2x4x12 treated + quantity of 2x6x16 + quantity of 2x12x16)*12 + quantity of 2x4x16 * 10) / 100)
+Description – Star head wood deck screws - 3"
+
+
+Item 28 – Picket nails
+Quantity = roundup (if screws = “no”, total linear length (with gates) / 22)
+
+
+Item 29 – Star head wood deck screws - 1 5/8"
+Quantity = roundup (if screws = “yes”, quantity of pickets * number of rails * 2)
+
+
+Item 30 – Wedge anchors
+Quantity = (Quantity of flange post centered + quantity of flanged post off centered) * 4
+Description – 1/2" x 3 3/4"
+
+
+Item 31 – Cantilever / sliding gate post
+Quantity = number of sliding gate * 3
+Description – 4” x (if height of fence is 6, then 9) or (if height of fence is 8, then 12) Sch 40
+
+
+Item 32 – Cantilever / sliding gate rollers
+Quantity = number of sliding gate * 4
+
+
+Item 33 – Cantilever / sliding gate latch
+Quantity = number of sliding gate
