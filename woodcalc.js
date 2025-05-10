@@ -66,7 +66,7 @@ const materialCosts = {
 function getInputValue(id, isNumeric = true) {
     const element = document.getElementById(id);
     if (!element) {
-        console.error(\`Input element ${id} missing.\`);
+        console.error("Input element " + id + " missing.");
         return isNumeric ? 0 : "";
     }
     const value = element.value;
@@ -75,7 +75,7 @@ function getInputValue(id, isNumeric = true) {
         // Add validation: Check if it's a number and non-negative
         if (isNaN(numValue) || numValue < 0) {
             // Optionally, provide user feedback here
-            console.warn(\`Invalid or negative input for ${id}: ${value}. Using 0.\`);
+            console.warn("Invalid or negative input for " + id + ": " + value + ". Using 0.");
             return 0;
         }
         return numValue;
@@ -83,18 +83,17 @@ function getInputValue(id, isNumeric = true) {
     return value;
 }
 
-
 function addResultRow(results, itemNumber, item, description, qty, unitCost, totalCost) {
     const numericQty = parseFloat(qty) || 0;
     const numericUnitCost = parseFloat(unitCost) || 0;
     const numericTotalCost = parseFloat(totalCost) || 0;
-    results.html += \`<tr><td>${itemNumber}</td><td>${item}</td><td>${description}</td><td>${numericQty.toFixed(numericQty % 1 === 0 ? 0 : 2)}</td><td>$${numericUnitCost.toFixed(2)}</td><td>$${numericTotalCost.toFixed(2)}</td></tr>\`;
+    results.html += "<tr><td>" + itemNumber + "</td><td>" + item + "</td><td>" + description + "</td><td>" + numericQty.toFixed(numericQty % 1 === 0 ? 0 : 2) + "</td><td>$" + numericUnitCost.toFixed(2) + "</td><td>$" + numericTotalCost.toFixed(2) + "</td></tr>";
     if (numericTotalCost > 0) { results.grandTotal += numericTotalCost; }
 }
 
 function parsePostType(postTypeValue) {
     const parts = postTypeValue.split('_');
-    if (parts[0] === 'wood') { return { material: \`${parts[0]}_\${parts[1]}\`, size: parts[2] }; } 
+    if (parts[0] === 'wood') { return { material: parts[0] + '_' + parts[1], size: parts[2] }; } 
     else if (parts[0] === 'postMaster') { return { material: 'postMaster', size: null }; } 
     else if (parts[0] === 'schedule20' || parts[0] === 'schedule40') { return { material: parts[0], size: parts[1].replace('-', '.') }; }
     return { material: 'unknown', size: null };

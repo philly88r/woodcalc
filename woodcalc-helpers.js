@@ -26,8 +26,9 @@ function generatePullLengthInputs(count) {
             if (window.innerWidth >= 768 && count % 2 !== 0 && i === count -1) { 
                 div.className = 'md:col-span-2';
             }
+            const defaultValue = (i === 0) ? '100' : ''; // Set default to 100 for the first input
             div.innerHTML = `<label for="pullLength_${i+1}" class="text-sm font-medium text-gray-700">Pull ${i+1} Length (ft):</label>
-                           <input type="number" id="pullLength_${i+1}" class="pull-length-input mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md p-2" min="0" step="any" oninput="updateTotalLengthFromPulls()">`; 
+                           <input type="number" id="pullLength_${i+1}" class="pull-length-input mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md p-2" value="${defaultValue}" min="0" step="any" oninput="updateTotalLengthFromPulls()">`; 
             container.appendChild(div);
         }
     } else {

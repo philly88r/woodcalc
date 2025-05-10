@@ -1,0 +1,16 @@
+{
+  "name": "woodcalc",
+  "version": "1.0.0",
+  "description": "Wood Fence Calculator",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "engines": {
+    "node": "16.x"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}

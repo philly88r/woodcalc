@@ -87,7 +87,7 @@
                 <option value="Vertical" selected>Vertical Pickets</option>
                 <option value="Horizontal">Horizontal Pickets</option>
             </select>
-        </div>
+         </div>
          <div>
             <label for="fenceStyle">Fence Style:</label> 
             <select id="fenceStyle" onchange="calculateFence()">
@@ -98,7 +98,7 @@
         </div>
         <div>
             <label for="numCorners">Number of Corners:</label>
-            <input type="number" id="numCorners" value="2" oninput="calculateFence()"> 
+            <input type="number" id="numCorners" value="0" oninput="calculateFence()"> 
         </div>
 
         <h3 class="input-group-title">Post Configuration</h3>
@@ -115,7 +115,7 @@
         </div>
         <div>
             <label for="postSpacing">Post Spacing (ft):</label>
-            <input type="number" id="postSpacing" value="6" oninput="calculateFence()"> 
+            <input type="number" id="postSpacing" value="8" oninput="calculateFence()"> 
         </div>
         <div>
             <label for="holeDepth">Depth of Post Hole (inches):</label>
@@ -128,9 +128,9 @@
         <div>
             <label for="concreteType">Concrete Type:</label>
             <select id="concreteType" onchange="calculateFence()">
-                <option value="truck" selected>Truck (cubic yards)</option>
+                <option value="truck">Truck (cubic yards)</option>
                 <option value="red">Red Bag (50lb)</option>
-                <option value="yellow">Yellow Bag (60lb)</option>
+                <option value="yellow" selected>Yellow Bag (60lb)</option>
             </select>
         </div>
         <div>
@@ -246,7 +246,7 @@
         <h3 class="input-group-title">Gates</h3>
         <div>
             <label for="numSingleGates">Number of Single Gates:</label>
-            <input type="number" id="numSingleGates" value="1" oninput="handleNumSingleGatesChange()"> 
+            <input type="number" id="numSingleGates" value="0" oninput="handleNumSingleGatesChange()"> 
         </div>
         <div id="singleGateWidthsContainer" class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-0 mt-0">
             </div>
