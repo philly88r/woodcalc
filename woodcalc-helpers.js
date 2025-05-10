@@ -14,6 +14,7 @@ function updateTotalLengthFromPulls() {
 
 // Generate pull length inputs
 function generatePullLengthInputs(count) {
+    console.log('generatePullLengthInputs called with count:', count); // Added logging
     const container = document.getElementById('pullLengthsContainer');
     const totalLengthInput = document.getElementById('totalLength');
     container.innerHTML = ''; 
@@ -42,6 +43,7 @@ function generatePullLengthInputs(count) {
 
 // Handle number of stretches change
 function handleNumStretchesChange() {
+    console.log('handleNumStretchesChange called'); // Added logging
     generatePullLengthInputs(getInputValue('numStretches'));
 }
 
