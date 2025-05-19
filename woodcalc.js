@@ -127,6 +127,9 @@ function getRequiredPostLength(postTypeKey, fenceHeightFt, holeDepthFt) {
     return "8"; // Default
 }
 
+// Store last calculation result for CRM integration
+window.lastCalculationResult = null;
+
 // Main calculation function - Definition is in woodcalc-main.js
 // window.calculateFence = calculateFence; // This is exported in woodcalc-main.js
 

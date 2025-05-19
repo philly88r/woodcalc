@@ -216,14 +216,24 @@ function calculateFence() {
                 addResultRow(results, i, itemData[i].item, itemData[i].description, itemData[i].qty, itemData[i].unitCost, itemData[i].totalCost);
             }
         }
-        
+
+        // Display results
         results.html += '</tbody></table>';
         if (tableContainer) tableContainer.innerHTML = results.html;
         if (grandTotalP) grandTotalP.textContent = `Grand Total: $${results.grandTotal.toFixed(2)}`;
-        
+
+        // Store calculation result for CRM integration
+        window.lastCalculationResult = {
+            grandTotal: results.grandTotal,
+            itemData: itemData,
+            calculationDate: new Date().toISOString(),
+            results: results
+        };
+
     } catch (error) {
-        console.error("Calculation Error:", error);
+        console.error('Error in calculation:', error);
         if (errorDiv) errorDiv.textContent = `Error: ${error.message}`;
+        window.lastCalculationResult = null;
     }
 }
 

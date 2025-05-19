@@ -1,10 +1,4 @@
 // CRM Integration for Wood Fence Calculator
-import { createClient } from '@supabase/supabase-js';
-
-// Initialize Supabase client with anon key for client-side operations
-const supabaseUrl = 'https://kdhwrlhzevzekoanusbs.supabase.co';
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkaHdybGh6ZXZ6ZWtvYW51c2JzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDU5MzI1NDUsImV4cCI6MjAyMTUwODU0NX0.PXkR_PYOUPJvWRQGYNOy94VhgI4G9hVZ4Q6ZQ4Q4Z4Q';
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 let currentCustomerId = null;
 let currentCustomer = null;
@@ -31,7 +25,12 @@ async function fetchCustomerDetails(customerId) {
 // Function to save calculation and create estimate
 async function saveCalculationToCrm(calculationData) {
     if (!currentCustomerId) {
-        console.error('No customer ID available');
+        alert('Error: No customer ID available. Please make sure you accessed this page with a proper customer ID in the URL.');
+        return;
+    }
+
+    if (!calculationData || !calculationData.grandTotal) {
+        alert('Error: No calculation data available. Please complete the calculation first.');
         return;
     }
 
@@ -67,17 +66,25 @@ async function saveCalculationToCrm(calculationData) {
             })
         });
 
-        if (!estimateResponse.ok) throw new Error('Failed to create estimate');
+        if (!estimateResponse.ok) {
+            const error = await estimateResponse.text();
+            throw new Error(`Failed to create estimate: ${error}`);
+        }
 
         const estimateResult = await estimateResponse.json();
         console.log('Estimate created:', estimateResult);
 
         // Redirect to the estimate in CRM
-        window.location.href = estimateResult.redirectUrl;
+        if (estimateResult.redirectUrl) {
+            window.location.href = estimateResult.redirectUrl;
+        } else {
+            alert('Estimate saved successfully!');
+        }
 
         return estimateResult;
     } catch (error) {
         console.error('Error saving calculation and creating estimate:', error);
+        alert(`Error: ${error.message}`);
         throw error;
     }
 }
@@ -87,6 +94,7 @@ async function initCrmIntegration() {
     const customerId = getCustomerIdFromUrl();
     if (!customerId) {
         console.error('No customer ID provided in URL');
+        document.getElementById('save-to-crm-btn').style.display = 'none';
         return;
     }
 
@@ -95,9 +103,13 @@ async function initCrmIntegration() {
     
     if (currentCustomer) {
         console.log('Customer loaded:', currentCustomer);
+    } else {
+        document.getElementById('save-to-crm-btn').style.display = 'none';
     }
 }
 
-// Export functions
+// Make functions available globally
+window.saveCalculationToCrm = saveCalculationToCrm;
+window.initCrmIntegration = initCrmIntegration;
 window.saveCalculationToCrm = saveCalculationToCrm;
 window.initCrmIntegration = initCrmIntegration;
