@@ -322,21 +322,38 @@
         <div id="resultsTableContainer" class="overflow-x-auto shadow-md rounded-lg"></div>
         <p id="grandTotal" class="text-2xl font-bold text-right mt-6"></p>
         <div id="errorMessage" class="text-red-600 mt-4"></div>
+        
+        <!-- CRM Integration Section -->
+        <div id="crm-integration" class="mt-8 p-6 border border-gray-200 rounded-lg bg-gray-50">
+            <h3 class="text-xl font-bold text-gray-700 mb-4">CRM Integration</h3>
+            <div class="flex flex-col md:flex-row items-start md:items-center gap-4 mb-4">
+                <button id="select-customer-btn" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors" onclick="openCustomerSelectionModal()">Select Customer from CRM</button>
+                <div id="selected-customer-info" class="text-gray-700">No customer selected</div>
+            </div>
+            <button id="save-to-crm-btn" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors" onclick="handleSaveToCRM()" disabled>Save Quote to CRM</button>
+        </div>
     </div>
 </div>
 
 <!-- Our JavaScript files will be loaded at the end of the body -->
 <script src="woodcalc.js"></script>
 <script src="woodcalc-helpers.js"></script>
+<script src="woodcalc-crm.js"></script>
 <script src="woodcalc-items1-10.js"></script>
 <script src="woodcalc-items11-20.js"></script>
 <script src="woodcalc-items21-33.js"></script>
 <script src="woodcalc-main.js"></script>
+<script src="crm-integration.js"></script>
 
 <script>
     // Initialize on page load
-    window.onload = () => {
-        console.log('window.onload fired'); // Added logging
+    async function init() {
+        await initCrmIntegration();
+        onload();
+    }
+
+    function onload() {
+        console.log('window.onload fired');
         // Initialize dynamic inputs
         handleNumStretchesChange(); 
         handleNumSingleGatesChange(); 
@@ -347,7 +364,9 @@
         toggleGatePostOptions();
         // Initial calculation
         calculateFence(); 
-    };
+    }
+
+    init();
 </script>
 </body>
 </html>
