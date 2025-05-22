@@ -16,7 +16,7 @@ async function getCustomerId() {
             console.log('Found token in URL:', token);
             
             // Validate token with server
-            const response = await fetch(`/.netlify/functions/validate-token?token=${token}`);
+            const response = await fetch(`/api/validate-token?token=${token}`);
             
             if (response.ok) {
                 const data = await response.json();
@@ -50,7 +50,7 @@ async function getCustomerId() {
             console.log('Found token in localStorage');
             
             // Validate token with server
-            const response = await fetch(`/.netlify/functions/validate-token?token=${storedToken}`);
+            const response = await fetch(`/api/validate-token?token=${storedToken}`);
             
             if (response.ok) {
                 const data = await response.json();
@@ -100,7 +100,7 @@ async function getCustomerId() {
 // Function to fetch customer details
 async function fetchCustomerDetails(customerId) {
     try {
-        const response = await fetch(`/.netlify/functions/get-customers?id=${customerId}`);
+        const response = await fetch(`/api/get-customers?id=${customerId}`);
         if (!response.ok) throw new Error('Failed to fetch customer');
         const data = await response.json();
         return data;
@@ -163,7 +163,7 @@ async function saveCalculationToCrm(calculationData) {
         const notes = `Fence calculation: ${fenceHeight}ft height, ${totalLength}ft length, ${postSpacing}ft post spacing`;
         
         // First save the calculation
-        const calcResponse = await fetch('/.netlify/functions/save-calculation', {
+        const calcResponse = await fetch('/api/save-calculation', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -188,7 +188,7 @@ async function saveCalculationToCrm(calculationData) {
         console.log('Calculation saved:', calcResult);
 
         // Then create an estimate
-        const estimateResponse = await fetch('/.netlify/functions/create-estimate', {
+        const estimateResponse = await fetch('/api/create-estimate', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -313,7 +313,7 @@ async function saveCalculation(calculationData) {
         const notes = `Fence calculation: ${fenceHeight}ft height, ${totalLength}ft length, ${postSpacing}ft post spacing`;
         
         // Save the calculation
-        const calcResponse = await fetch('/.netlify/functions/save-calculation', {
+        const calcResponse = await fetch('/api/save-calculation', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

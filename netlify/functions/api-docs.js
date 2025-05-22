@@ -70,7 +70,7 @@ exports.handler = async (event, context) => {
   <p>The Wood Calculator uses a token-based authentication system to securely link customers to the calculator.</p>
   
   <div class="endpoint">
-    <p><span class="method">POST</span> <code>/.netlify/functions/generate-access-token</code></p>
+    <p><span class="method">POST</span> <code>/api/generate-access-token</code></p>
     <p>Generate a secure access token for a customer.</p>
     
     <h3>Request Body</h3>
@@ -98,7 +98,7 @@ exports.handler = async (event, context) => {
   <ol>
     <li>
       <p>Generate a token for your customer:</p>
-      <pre>fetch('https://woodcalc-app.herokuapp.com/.netlify/functions/generate-access-token', {
+      <pre>fetch('https://wood-fence-calculator.windsurf.build/api/generate-access-token', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
@@ -130,7 +130,7 @@ exports.handler = async (event, context) => {
   <h2>Token Validation</h2>
   
   <div class="endpoint">
-    <p><span class="method">GET</span> <code>/.netlify/functions/validate-token?token=your-token</code></p>
+    <p><span class="method">GET</span> <code>/api/validate-token?token=your-token</code></p>
     <p>Validate a token and get the associated customer.</p>
     
     <h3>Response</h3>
