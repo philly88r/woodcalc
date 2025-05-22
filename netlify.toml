@@ -8,6 +8,6 @@
 
 # Redirect API requests to the functions
 [[redirects]]
-  from = "/api/*"
+  from = "/.netlify/functions/*"
   to = "/.netlify/functions/:splat"
   status = 200

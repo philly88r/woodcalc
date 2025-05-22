@@ -327,13 +327,6 @@
         <div id="crm-integration" class="mt-8 p-6 border border-gray-200 rounded-lg bg-gray-50">
             <h3 class="text-xl font-bold text-gray-700 mb-4">Save Options</h3>
             
-            <!-- Debug Info (hidden in production) -->
-            <div id="debug-info" class="mb-4 p-3 bg-gray-100 rounded text-xs">
-                <div class="mb-2">Debug Info:</div>
-                <div id="customer-id-display">Customer ID: Loading...</div>
-                <div id="token-display">Token: Loading...</div>
-                <div id="url-display">URL: Loading...</div>
-            </div>
 
             <div class="flex flex-col md:flex-row gap-4">
                 <button id="save-calculation-btn" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors" onclick="saveCalculation(window.lastCalculationResult)" style="display:block;">Save Calculation</button>
@@ -344,21 +337,34 @@
 </div>
 
 <!-- Our JavaScript files will be loaded at the end of the body -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="woodcalc.js"></script>
 <script src="woodcalc-helpers.js"></script>
 <script src="woodcalc-items1-10.js"></script>
 <script src="woodcalc-items11-20.js"></script>
 <script src="woodcalc-items21-33.js"></script>
 <script src="woodcalc-main.js"></script>
+<script src="customer-integration.js"></script>
 <script src="woodcalc-crm.js"></script>
 
 <script>
     // Initialize on page load
     async function init() {
         // Make sure customer ID is available globally
+        // Check for both 'customer_id' (primary) and 'customerId' (backward compatibility)
         const urlParams = new URLSearchParams(window.location.search);
-        window.currentCustomerId = urlParams.get('customerId');
+        window.currentCustomerId = urlParams.get('customer_id') || urlParams.get('customerId');
         console.log('Setting global customer ID:', window.currentCustomerId);
+        
+        // Initialize customer data form if available
+        if (typeof initializeCustomerData === 'function') {
+            try {
+                await initializeCustomerData();
+                console.log('Customer data initialized');
+            } catch (error) {
+                console.error('Error initializing customer data:', error);
+            }
+        }
         
         // Initialize CRM integration
         if (typeof initCrmIntegration === 'function') {

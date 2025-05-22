@@ -1,5 +1,21 @@
 // CRM Integration for Wood Fence Calculator
 
+// Use the global Supabase client that was initialized in the HTML
+// Avoid redeclaring supabase variable
+let crmSupabase = null;
+if (typeof window !== 'undefined') {
+    if (typeof window.supabase !== 'undefined') {
+        crmSupabase = window.supabase;
+        console.log('CRM using global window.supabase client');
+    } else if (typeof supabaseClient !== 'undefined') {
+        crmSupabase = supabaseClient;
+        console.log('CRM using supabaseClient from HTML');
+    } else {
+        console.warn('Supabase client not available for CRM - some features may not work');
+    }
+}
+
+// Global variables
 let currentCustomerId = null;
 let currentCustomer = null;
 
@@ -69,13 +85,21 @@ async function getCustomerId() {
         console.error('Error validating stored token:', error);
     }
     
-    // Method 3: Try to get from direct customer ID in URL (backward compatibility)
+    // Method 3: Try to get from direct customer ID in URL
     try {
         const urlParams = new URLSearchParams(window.location.search);
-        const customerId = urlParams.get('customerId');
+        // First check for customer_id parameter (used by customer-integration.js)
+        let customerId = urlParams.get('customer_id');
+        
+        // If not found, try customerId parameter (backward compatibility)
+        if (!customerId) {
+            customerId = urlParams.get('customerId');
+        }
         
         if (customerId && customerId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
             console.log('Valid customer ID from URL:', customerId);
+            // Store it for future use
+            try { localStorage.setItem('woodcalc_customer_id', customerId); } catch (e) {}
             return customerId;
         }
     } catch (error) {
@@ -94,25 +118,36 @@ async function getCustomerId() {
     }
     
     console.error('Could not determine customer ID using any method');
-    
-    // FALLBACK FOR TESTING: Use a default customer ID
-    // IMPORTANT: Remove this in production
-    console.warn('Using fallback customer ID for testing');
-    const fallbackId = '00000000-0000-0000-0000-000000000000';
-    
-    // Store for future use
-    try { localStorage.setItem('woodcalc_customer_id', fallbackId); } catch (e) {}
-    
-    return fallbackId;
+    return null;
 }
 
 // Function to fetch customer details
 async function fetchCustomerDetails(customerId) {
     try {
-        const response = await fetch(`/api/get-customers?id=${customerId}`);
-        if (!response.ok) throw new Error('Failed to fetch customer');
-        const data = await response.json();
-        return data;
+        // First try using the API endpoint
+        try {
+            const response = await fetch(`/api/get-customers?id=${customerId}`);
+            if (response.ok) {
+                const data = await response.json();
+                return data;
+            }
+        } catch (apiError) {
+            console.warn('API endpoint failed, falling back to direct Supabase:', apiError);
+        }
+        
+        // If API fails, try direct Supabase connection
+        if (crmSupabase) {
+            const { data, error } = await crmSupabase
+                .from('customers')
+                .select('*')
+                .eq('id', customerId)
+                .single();
+                
+            if (error) throw error;
+            return data;
+        }
+        
+        throw new Error('Failed to fetch customer');
     } catch (error) {
         console.error('Error fetching customer:', error);
         return null;
@@ -134,13 +169,9 @@ async function saveCalculationToCrm(calculationData) {
     console.log('Customer ID for save:', customerId);
     
     if (!customerId) {
-        console.error('No customer ID available, attempting to use fallback');
-        customerId = '00000000-0000-0000-0000-000000000000'; // Fallback ID for testing
-        
-        if (!customerId) {
-            alert('Error: No customer ID available. Please contact support for assistance.');
-            return;
-        }
+        console.error('No customer ID available');
+        alert('Error: No customer ID available. Please contact support for assistance.');
+        return;
     }
     
     // Ensure currentCustomerId is set
@@ -180,29 +211,92 @@ async function saveCalculationToCrm(calculationData) {
         const notes = `Fence calculation: ${fenceHeight}ft height, ${totalLength}ft length, ${postSpacing}ft post spacing`;
         
         // First save the calculation
-        const calcResponse = await fetch('/api/save-calculation', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                customerId: currentCustomerId,
-                totalLength,
-                postSpacing,
-                postCount,
-                railCount,
-                picketCount,
-                totalCost: grandTotal,
-                notes,
-                itemData,
-                calculationDate
-            })
-        });
-
-        if (!calcResponse.ok) throw new Error('Failed to save calculation');
+        let calcResult;
         
-        const calcResult = await calcResponse.json();
-        console.log('Calculation saved:', calcResult);
+        try {
+            // Try API endpoint first
+            const calcResponse = await fetch('/api/save-calculation', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    customerId: currentCustomerId,
+                    totalLength,
+                    postSpacing,
+                    postCount,
+                    railCount,
+                    picketCount,
+                    totalCost: grandTotal,
+                    notes,
+                    itemData,
+                    calculationDate
+                })
+            });
+            
+            if (calcResponse.ok) {
+                calcResult = await calcResponse.json();
+            } else {
+                throw new Error('API endpoint failed');
+            }
+        } catch (apiError) {
+            console.warn('API save failed, trying direct Supabase:', apiError);
+            
+            // If API fails, try direct Supabase connection
+            if (crmSupabase) {
+                const { data, error } = await crmSupabase
+                    .from('wood_calculator')
+                    .insert([{
+                        customer_id: currentCustomerId,
+                        total_length: totalLength || 0,
+                        post_spacing: postSpacing || 0,
+                        post_count: postCount || 0,
+                        rail_count: railCount || 0,
+                        picket_count: picketCount || 0,
+                        total_cost: grandTotal || 0,
+                        notes
+                    }])
+                    .select()
+                    .single();
+                
+                if (error) throw error;
+                calcResult = data;
+                
+                // Save line items if we have them
+                if (itemData && Object.keys(itemData).length > 0) {
+                    const lineItems = [];
+                    
+                    for (const [itemNumber, item] of Object.entries(itemData)) {
+                        // Only save items with quantity > 0
+                        if (item.qty > 0) {
+                            lineItems.push({
+                                calculation_id: calcResult.id,
+                                item_number: parseInt(itemNumber),
+                                item_name: item.item,
+                                description: item.description,
+                                quantity: item.qty,
+                                unit_cost: item.unitCost,
+                                total_cost: item.totalCost
+                            });
+                        }
+                    }
+                    
+                    if (lineItems.length > 0) {
+                        const { error: lineItemsError } = await supabase
+                            .from('calculation_items')
+                            .insert(lineItems);
+                        
+                        if (lineItemsError) {
+                            console.error('Error saving line items:', lineItemsError);
+                        }
+                    }
+                }
+            } else {
+                throw new Error('Failed to save calculation');
+            }
+        }
+
+        // Note: calcResult is already set in the try/catch block above
 
         // Then create an estimate
         const estimateResponse = await fetch('/api/create-estimate', {
@@ -317,13 +411,9 @@ async function saveCalculation(calculationData) {
     console.log('Customer ID for save:', customerId);
     
     if (!customerId) {
-        console.error('No customer ID available, attempting to use fallback');
-        customerId = '00000000-0000-0000-0000-000000000000'; // Fallback ID for testing
-        
-        if (!customerId) {
-            alert('Error: No customer ID available. Please contact support for assistance.');
-            return;
-        }
+        console.error('No customer ID available');
+        alert('Error: No customer ID available. Please contact support for assistance.');
+        return;
     }
     
     // Ensure currentCustomerId is set
@@ -340,6 +430,23 @@ async function saveCalculation(calculationData) {
     }
 
     try {
+        let calcResult = null;
+        
+        // First try the new method using customer-integration.js
+        if (typeof saveCalculationToSupabase === 'function') {
+            try {
+                calcResult = await saveCalculationToSupabase(calculationData);
+                if (calcResult) {
+                    console.log('Calculation saved using saveCalculationToSupabase:', calcResult);
+                    alert('Calculation saved successfully!');
+                    return calcResult;
+                }
+            } catch (newMethodError) {
+                console.warn('Error using saveCalculationToSupabase:', newMethodError);
+                // Continue to fallback methods
+            }
+        }
+        
         // Extract required fields from calculation data
         const {
             grandTotal,
@@ -362,33 +469,93 @@ async function saveCalculation(calculationData) {
         // Generate notes with fence dimensions
         const notes = `Fence calculation: ${fenceHeight}ft height, ${totalLength}ft length, ${postSpacing}ft post spacing`;
         
-        // Save the calculation
-        const calcResponse = await fetch('/api/save-calculation', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                customerId: currentCustomerId,
-                totalLength,
-                postSpacing,
-                postCount,
-                railCount,
-                picketCount,
-                totalCost: grandTotal,
-                notes,
-                itemData,
-                calculationDate
-            })
-        });
-
-        if (!calcResponse.ok) throw new Error('Failed to save calculation');
-        
-        const calcResult = await calcResponse.json();
-        console.log('Calculation saved:', calcResult);
+        // Try API endpoint
+        try {
+            const calcResponse = await fetch('/api/save-calculation', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    customerId: currentCustomerId,
+                    totalLength,
+                    postSpacing,
+                    postCount,
+                    railCount,
+                    picketCount,
+                    totalCost: grandTotal,
+                    notes,
+                    itemData,
+                    calculationDate
+                })
+            });
+            
+            if (calcResponse.ok) {
+                calcResult = await calcResponse.json();
+                console.log('Calculation saved via API:', calcResult);
+            } else {
+                throw new Error('API endpoint failed');
+            }
+        } catch (apiError) {
+            console.warn('API save failed, trying direct Supabase:', apiError);
+            
+            // If API fails, try direct Supabase connection
+            if (crmSupabase) {
+                const { data, error } = await crmSupabase
+                    .from('wood_calculator')
+                    .insert([{
+                        customer_id: currentCustomerId,
+                        total_length: totalLength || 0,
+                        post_spacing: postSpacing || 0,
+                        post_count: postCount || 0,
+                        rail_count: railCount || 0,
+                        picket_count: picketCount || 0,
+                        total_cost: grandTotal || 0,
+                        notes
+                    }])
+                    .select()
+                    .single();
+                
+                if (error) throw error;
+                calcResult = data;
+                console.log('Calculation saved via Supabase:', calcResult);
+                
+                // Save line items if we have them
+                if (itemData && Object.keys(itemData).length > 0) {
+                    const lineItems = [];
+                    
+                    for (const [itemNumber, item] of Object.entries(itemData)) {
+                        // Only save items with quantity > 0
+                        if (item.qty > 0) {
+                            lineItems.push({
+                                calculation_id: calcResult.id,
+                                item_number: parseInt(itemNumber),
+                                item_name: item.item,
+                                description: item.description,
+                                quantity: item.qty,
+                                unit_cost: item.unitCost,
+                                total_cost: item.totalCost
+                            });
+                        }
+                    }
+                    
+                    if (lineItems.length > 0) {
+                        const { error: lineItemsError } = await supabase
+                            .from('calculation_items')
+                            .insert(lineItems);
+                        
+                        if (lineItemsError) {
+                            console.error('Error saving line items:', lineItemsError);
+                        }
+                    }
+                }
+            } else {
+                throw new Error('Failed to save calculation - no database connection available');
+            }
+        }
         
         alert('Calculation saved successfully!');
-        return calcResult;
+        return calcResult || { id: 'local-' + Date.now(), success: true };
     } catch (error) {
         console.error('Error saving calculation:', error);
         alert(`Error: ${error.message}`);
