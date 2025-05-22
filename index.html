@@ -337,17 +337,27 @@
 <!-- Our JavaScript files will be loaded at the end of the body -->
 <script src="woodcalc.js"></script>
 <script src="woodcalc-helpers.js"></script>
-<script src="woodcalc-crm.js"></script>
 <script src="woodcalc-items1-10.js"></script>
 <script src="woodcalc-items11-20.js"></script>
 <script src="woodcalc-items21-33.js"></script>
 <script src="woodcalc-main.js"></script>
-<script src="crm-integration.js"></script>
+<script src="woodcalc-crm.js"></script>
 
 <script>
     // Initialize on page load
     async function init() {
-        await initCrmIntegration();
+        // Make sure customer ID is available globally
+        const urlParams = new URLSearchParams(window.location.search);
+        window.currentCustomerId = urlParams.get('customerId');
+        console.log('Setting global customer ID:', window.currentCustomerId);
+        
+        // Initialize CRM integration
+        if (typeof initCrmIntegration === 'function') {
+            await initCrmIntegration();
+        } else {
+            console.error('CRM integration function not available');
+        }
+        
         onload();
     }
 

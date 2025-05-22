@@ -6,7 +6,9 @@ let currentCustomer = null;
 // Function to get customer ID from URL
 function getCustomerIdFromUrl() {
     const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get('customerId');
+    const customerId = urlParams.get('customerId');
+    console.log('Customer ID from URL:', customerId);
+    return customerId;
 }
 
 // Function to fetch customer details
@@ -24,10 +26,16 @@ async function fetchCustomerDetails(customerId) {
 
 // Function to save calculation and create estimate
 async function saveCalculationToCrm(calculationData) {
-    if (!currentCustomerId) {
+    // Try to get customer ID from multiple sources
+    const customerId = currentCustomerId || window.currentCustomerId;
+    
+    if (!customerId) {
         alert('Error: No customer ID available. Please make sure you accessed this page with a proper customer ID in the URL.');
         return;
     }
+    
+    // Ensure currentCustomerId is set
+    currentCustomerId = customerId;
 
     if (!calculationData || !calculationData.grandTotal) {
         alert('Error: No calculation data available. Please complete the calculation first.');
@@ -125,25 +133,40 @@ async function initCrmIntegration() {
     if (!customerId) {
         console.error('No customer ID provided in URL');
         document.getElementById('save-to-crm-btn').style.display = 'none';
+        document.getElementById('save-calculation-btn').style.display = 'none';
         return;
     }
 
     currentCustomerId = customerId;
-    currentCustomer = await fetchCustomerDetails(customerId);
+    console.log('Set current customer ID:', currentCustomerId);
     
-    if (currentCustomer) {
-        console.log('Customer loaded:', currentCustomer);
-    } else {
-        document.getElementById('save-to-crm-btn').style.display = 'none';
+    try {
+        currentCustomer = await fetchCustomerDetails(customerId);
+        
+        if (currentCustomer) {
+            console.log('Customer loaded:', currentCustomer);
+        } else {
+            console.error('Customer not found with ID:', customerId);
+            document.getElementById('save-to-crm-btn').style.display = 'none';
+            document.getElementById('save-calculation-btn').style.display = 'none';
+        }
+    } catch (error) {
+        console.error('Error loading customer:', error);
     }
 }
 
 // Function to save calculation only (without creating an estimate)
 async function saveCalculation(calculationData) {
-    if (!currentCustomerId) {
+    // Try to get customer ID from multiple sources
+    const customerId = currentCustomerId || window.currentCustomerId;
+    
+    if (!customerId) {
         alert('Error: No customer ID available. Please make sure you accessed this page with a proper customer ID in the URL.');
         return;
     }
+    
+    // Ensure currentCustomerId is set
+    currentCustomerId = customerId;
 
     if (!calculationData || !calculationData.grandTotal) {
         alert('Error: No calculation data available. Please complete the calculation first.');
