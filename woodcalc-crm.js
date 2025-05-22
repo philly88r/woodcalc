@@ -144,26 +144,29 @@ async function initCrmIntegration() {
         document.getElementById('save-calculation-btn').style.display = 'block';
     }
     
-    if (!customerId) {
-        console.error('No customer ID provided in URL');
-        return;
-    }
-
-    currentCustomerId = customerId;
-    console.log('Set current customer ID:', currentCustomerId);
-    
-    try {
-        currentCustomer = await fetchCustomerDetails(customerId);
+    if (customerId) {
+        currentCustomerId = customerId;
+        window.currentCustomerId = customerId; // Also set it on the window object
+        console.log('Set current customer ID:', currentCustomerId);
         
-        if (currentCustomer) {
-            console.log('Customer loaded:', currentCustomer);
-        } else {
-            console.error('Customer not found with ID:', customerId);
-            // Don't hide buttons - we'll handle missing customer in the save functions
+        try {
+            currentCustomer = await fetchCustomerDetails(customerId);
+            
+            if (currentCustomer) {
+                console.log('Customer loaded:', currentCustomer);
+            } else {
+                console.error('Customer not found with ID:', customerId);
+                // Don't hide buttons - we'll handle missing customer in the save functions
+            }
+        } catch (error) {
+            console.error('Error loading customer:', error);
         }
-    } catch (error) {
-        console.error('Error loading customer:', error);
+    } else {
+        console.error('No customer ID provided in URL');
     }
+    
+    // Update the customer ID display
+    updateCustomerIdDisplay();
 }
 
 // Function to save calculation only (without creating an estimate)
@@ -244,7 +247,43 @@ async function saveCalculation(calculationData) {
     }
 }
 
+// Function to manually set customer ID (for debugging)
+function setCustomerId() {
+    const manualIdInput = document.getElementById('manual-customer-id');
+    const idDisplay = document.getElementById('customer-id-display');
+    
+    if (manualIdInput && manualIdInput.value) {
+        currentCustomerId = manualIdInput.value;
+        window.currentCustomerId = currentCustomerId;
+        
+        if (idDisplay) {
+            idDisplay.textContent = `ID set: ${currentCustomerId}`;
+        }
+        
+        console.log('Manually set customer ID:', currentCustomerId);
+        alert(`Customer ID set to: ${currentCustomerId}`);
+    } else {
+        alert('Please enter a valid customer ID');
+    }
+}
+
+// Function to update customer ID display
+function updateCustomerIdDisplay() {
+    const idDisplay = document.getElementById('customer-id-display');
+    const id = currentCustomerId || window.currentCustomerId || getCustomerIdFromUrl();
+    
+    if (idDisplay) {
+        if (id) {
+            idDisplay.textContent = `ID detected: ${id}`;
+        } else {
+            idDisplay.textContent = 'No ID detected';
+        }
+    }
+}
+
 // Make functions available globally
 window.saveCalculationToCrm = saveCalculationToCrm;
 window.saveCalculation = saveCalculation;
 window.initCrmIntegration = initCrmIntegration;
+window.setCustomerId = setCustomerId;
+window.updateCustomerIdDisplay = updateCustomerIdDisplay;
