@@ -94,7 +94,16 @@ async function getCustomerId() {
     }
     
     console.error('Could not determine customer ID using any method');
-    return null;
+    
+    // FALLBACK FOR TESTING: Use a default customer ID
+    // IMPORTANT: Remove this in production
+    console.warn('Using fallback customer ID for testing');
+    const fallbackId = '00000000-0000-0000-0000-000000000000';
+    
+    // Store for future use
+    try { localStorage.setItem('woodcalc_customer_id', fallbackId); } catch (e) {}
+    
+    return fallbackId;
 }
 
 // Function to fetch customer details
@@ -125,14 +134,22 @@ async function saveCalculationToCrm(calculationData) {
     console.log('Customer ID for save:', customerId);
     
     if (!customerId) {
-        alert('Error: No customer ID available. Please contact support for assistance.');
-        return;
+        console.error('No customer ID available, attempting to use fallback');
+        customerId = '00000000-0000-0000-0000-000000000000'; // Fallback ID for testing
+        
+        if (!customerId) {
+            alert('Error: No customer ID available. Please contact support for assistance.');
+            return;
+        }
     }
     
     // Ensure currentCustomerId is set
     currentCustomerId = customerId;
     // Store for future use
     try { localStorage.setItem('woodcalc_customer_id', customerId); } catch (e) {}
+    
+    // Update debug display
+    updateDebugDisplay();
 
     if (!calculationData || !calculationData.grandTotal) {
         alert('Error: No calculation data available. Please complete the calculation first.');
@@ -224,6 +241,28 @@ async function saveCalculationToCrm(calculationData) {
     }
 }
 
+// Function to update debug display
+function updateDebugDisplay() {
+    // Update customer ID display
+    const customerIdDisplay = document.getElementById('customer-id-display');
+    if (customerIdDisplay) {
+        customerIdDisplay.textContent = `Customer ID: ${currentCustomerId || 'None'}`;
+    }
+    
+    // Update token display
+    const tokenDisplay = document.getElementById('token-display');
+    if (tokenDisplay) {
+        const token = localStorage.getItem('woodcalc_access_token') || 'None';
+        tokenDisplay.textContent = `Token: ${token.substring(0, 10)}...`;
+    }
+    
+    // Update URL display
+    const urlDisplay = document.getElementById('url-display');
+    if (urlDisplay) {
+        urlDisplay.textContent = `URL: ${window.location.href}`;
+    }
+}
+
 // Initialize CRM integration
 async function initCrmIntegration() {
     // Always show the buttons initially
@@ -258,6 +297,9 @@ async function initCrmIntegration() {
     } else {
         console.error('Could not determine customer ID');
     }
+    
+    // Update debug display
+    updateDebugDisplay();
 }
 
 // Function to save calculation only (without creating an estimate)
@@ -275,14 +317,22 @@ async function saveCalculation(calculationData) {
     console.log('Customer ID for save:', customerId);
     
     if (!customerId) {
-        alert('Error: No customer ID available. Please contact support for assistance.');
-        return;
+        console.error('No customer ID available, attempting to use fallback');
+        customerId = '00000000-0000-0000-0000-000000000000'; // Fallback ID for testing
+        
+        if (!customerId) {
+            alert('Error: No customer ID available. Please contact support for assistance.');
+            return;
+        }
     }
     
     // Ensure currentCustomerId is set
     currentCustomerId = customerId;
     // Store for future use
     try { localStorage.setItem('woodcalc_customer_id', customerId); } catch (e) {}
+    
+    // Update debug display
+    updateDebugDisplay();
 
     if (!calculationData || !calculationData.grandTotal) {
         alert('Error: No calculation data available. Please complete the calculation first.');

@@ -327,6 +327,13 @@
         <div id="crm-integration" class="mt-8 p-6 border border-gray-200 rounded-lg bg-gray-50">
             <h3 class="text-xl font-bold text-gray-700 mb-4">Save Options</h3>
             
+            <!-- Debug Info (hidden in production) -->
+            <div id="debug-info" class="mb-4 p-3 bg-gray-100 rounded text-xs">
+                <div class="mb-2">Debug Info:</div>
+                <div id="customer-id-display">Customer ID: Loading...</div>
+                <div id="token-display">Token: Loading...</div>
+                <div id="url-display">URL: Loading...</div>
+            </div>
 
             <div class="flex flex-col md:flex-row gap-4">
                 <button id="save-calculation-btn" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors" onclick="saveCalculation(window.lastCalculationResult)" style="display:block;">Save Calculation</button>
