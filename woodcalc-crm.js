@@ -3,25 +3,86 @@
 let currentCustomerId = null;
 let currentCustomer = null;
 
-// Function to get customer ID using multiple methods
+// Function to get customer ID using token-based authentication
 async function getCustomerId() {
-    // Method 1: Try to get from URL parameters
+    console.log('Attempting to get customer ID...');
+    
+    // Method 1: Try to get from access token in URL
+    try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+        
+        if (token) {
+            console.log('Found token in URL:', token);
+            
+            // Validate token with server
+            const response = await fetch(`/.netlify/functions/validate-token?token=${token}`);
+            
+            if (response.ok) {
+                const data = await response.json();
+                
+                if (data.valid && data.customer && data.customer.id) {
+                    console.log('Valid token, customer ID:', data.customer.id);
+                    currentCustomer = data.customer;
+                    
+                    // Store token and customer ID for future use
+                    try { 
+                        localStorage.setItem('woodcalc_access_token', token);
+                        localStorage.setItem('woodcalc_customer_id', data.customer.id);
+                        localStorage.setItem('woodcalc_customer_name', data.customer.name || '');
+                    } catch (e) {}
+                    
+                    return data.customer.id;
+                }
+            } else {
+                console.error('Invalid or expired token');
+            }
+        }
+    } catch (error) {
+        console.error('Error validating token:', error);
+    }
+    
+    // Method 2: Try to get from stored token in localStorage
+    try {
+        const storedToken = localStorage.getItem('woodcalc_access_token');
+        
+        if (storedToken) {
+            console.log('Found token in localStorage');
+            
+            // Validate token with server
+            const response = await fetch(`/.netlify/functions/validate-token?token=${storedToken}`);
+            
+            if (response.ok) {
+                const data = await response.json();
+                
+                if (data.valid && data.customer && data.customer.id) {
+                    console.log('Valid stored token, customer ID:', data.customer.id);
+                    currentCustomer = data.customer;
+                    return data.customer.id;
+                } else {
+                    // Token is invalid or expired, remove it
+                    localStorage.removeItem('woodcalc_access_token');
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Error validating stored token:', error);
+    }
+    
+    // Method 3: Try to get from direct customer ID in URL (backward compatibility)
     try {
         const urlParams = new URLSearchParams(window.location.search);
         const customerId = urlParams.get('customerId');
         
-        // Check if we have a valid UUID format
         if (customerId && customerId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
             console.log('Valid customer ID from URL:', customerId);
             return customerId;
-        } else if (customerId) {
-            console.log('Invalid customer ID format:', customerId);
         }
     } catch (error) {
         console.error('Error parsing URL parameters:', error);
     }
     
-    // Method 2: Try to get from localStorage (if previously stored)
+    // Method 4: Try to get from localStorage (if previously stored)
     try {
         const storedId = localStorage.getItem('woodcalc_customer_id');
         if (storedId && storedId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
@@ -30,62 +91,6 @@ async function getCustomerId() {
         }
     } catch (error) {
         console.error('Error accessing localStorage:', error);
-    }
-    
-    // Method 3: Try to get from document.referrer
-    try {
-        const referrer = document.referrer;
-        if (referrer) {
-            console.log('Referrer URL:', referrer);
-            
-            // Try to extract customer ID from referrer URL
-            const match = referrer.match(/customers\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/i);
-            if (match && match[1]) {
-                console.log('Customer ID from referrer URL:', match[1]);
-                // Store for future use
-                try { localStorage.setItem('woodcalc_customer_id', match[1]); } catch (e) {}
-                return match[1];
-            }
-        }
-    } catch (error) {
-        console.error('Error accessing referrer:', error);
-    }
-    
-    // Method 4: Try to get from server (current logged-in user)
-    try {
-        const response = await fetch('/.netlify/functions/get-current-user');
-        if (response.ok) {
-            const data = await response.json();
-            if (data.customer && data.customer.id) {
-                console.log('Customer ID from server:', data.customer.id);
-                // Store for future use
-                try { localStorage.setItem('woodcalc_customer_id', data.customer.id); } catch (e) {}
-                return data.customer.id;
-            }
-        }
-    } catch (error) {
-        console.error('Error getting current user from server:', error);
-    }
-    
-    // Method 5: Check if we're in an iframe and try to get from parent
-    try {
-        if (window.parent && window.parent !== window) {
-            // We might be in an iframe, try to get customer ID from parent URL
-            const parentUrl = window.parent.location.href;
-            console.log('Parent URL:', parentUrl);
-            
-            // Extract customer ID from parent URL if possible
-            const match = parentUrl.match(/customers\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/i);
-            if (match && match[1]) {
-                console.log('Customer ID from parent URL:', match[1]);
-                // Store for future use
-                try { localStorage.setItem('woodcalc_customer_id', match[1]); } catch (e) {}
-                return match[1];
-            }
-        }
-    } catch (error) {
-        // This might fail due to cross-origin restrictions
-        console.error('Error accessing parent frame:', error);
     }
     
     console.error('Could not determine customer ID using any method');
