@@ -337,43 +337,52 @@
 </div>
 
 <!-- Our JavaScript files will be loaded at the end of the body -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Core calculation scripts must be loaded first and in the correct order -->
 <script src="woodcalc.js"></script>
 <script src="woodcalc-helpers.js"></script>
 <script src="woodcalc-items1-10.js"></script>
 <script src="woodcalc-items11-20.js"></script>
 <script src="woodcalc-items21-33.js"></script>
 <script src="woodcalc-main.js"></script>
+<!-- CRM integration scripts loaded after calculation scripts -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="customer-integration.js"></script>
 <script src="woodcalc-crm.js"></script>
 
 <script>
     // Initialize on page load
     async function init() {
-        // Make sure customer ID is available globally
-        // Check for both 'customer_id' (primary) and 'customerId' (backward compatibility)
-        const urlParams = new URLSearchParams(window.location.search);
-        window.currentCustomerId = urlParams.get('customer_id') || urlParams.get('customerId');
-        console.log('Setting global customer ID:', window.currentCustomerId);
-        
-        // Initialize customer data form if available
-        if (typeof initializeCustomerData === 'function') {
-            try {
-                await initializeCustomerData();
-                console.log('Customer data initialized');
-            } catch (error) {
-                console.error('Error initializing customer data:', error);
-            }
-        }
-        
-        // Initialize CRM integration
-        if (typeof initCrmIntegration === 'function') {
-            await initCrmIntegration();
-        } else {
-            console.error('CRM integration function not available');
-        }
-        
+        // First run onload to ensure calculation functionality is initialized
         onload();
+        
+        // Then handle CRM integration after calculations are set up
+        try {
+            // Make sure customer ID is available globally
+            // Check for both 'customer_id' (primary) and 'customerId' (backward compatibility)
+            const urlParams = new URLSearchParams(window.location.search);
+            window.currentCustomerId = urlParams.get('customer_id') || urlParams.get('customerId');
+            console.log('Setting global customer ID:', window.currentCustomerId);
+            
+            // Initialize customer data form if available
+            if (typeof initializeCustomerData === 'function') {
+                try {
+                    await initializeCustomerData();
+                    console.log('Customer data initialized');
+                } catch (error) {
+                    console.error('Error initializing customer data:', error);
+                }
+            }
+            
+            // Initialize CRM integration
+            if (typeof initCrmIntegration === 'function') {
+                await initCrmIntegration();
+            } else {
+                console.error('CRM integration function not available');
+            }
+        } catch (error) {
+            console.error('Error in CRM initialization:', error);
+            // Errors in CRM integration should not break calculation functionality
+        }
     }
 
     function onload() {

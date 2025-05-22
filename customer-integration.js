@@ -6,18 +6,24 @@ let customerData = null;
 let supabaseClient = null;
 
 // Initialize Supabase client if available
-if (typeof createClient === 'function') {
-    try {
-        const supabaseUrl = 'https://kdhwrlhzevzekoanusbs.supabase.co';
-        const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkaHdybGh6ZXZ6ZWtvYW51c2JzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDU5MzI1NDUsImV4cCI6MjAyMTUwODU0NX0.PXkR_PYOUPJvWRQGYNOy94VhgI4G9hVZ4Q6ZQ4Q4Z4Q';
-        supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
-        console.log('Supabase client initialized for customer integration');
-        
-        // Make it available globally
-        window.supabaseClient = supabaseClient;
-    } catch (error) {
-        console.error('Error initializing Supabase client:', error);
+// Defer this initialization to avoid interfering with calculation scripts
+function initSupabaseClient() {
+    if (typeof createClient === 'function') {
+        try {
+            const supabaseUrl = 'https://kdhwrlhzevzekoanusbs.supabase.co';
+            const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkaHdybGh6ZXZ6ZWtvYW51c2JzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDU5MzI1NDUsImV4cCI6MjAyMTUwODU0NX0.PXkR_PYOUPJvWRQGYNOy94VhgI4G9hVZ4Q6ZQ4Q4Z4Q';
+            supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
+            console.log('Supabase client initialized for customer integration');
+            
+            // Make it available globally
+            window.supabaseClient = supabaseClient;
+            return supabaseClient;
+        } catch (error) {
+            console.error('Error initializing Supabase client:', error);
+            return null;
+        }
     }
+    return null;
 }
 
 // Function to get customer ID from URL
@@ -209,27 +215,37 @@ async function saveCalculationToSupabase(calculationData) {
 
 // Main initialization function
 async function initializeCustomerData() {
-    const customerId = getCustomerIdFromUrl();
-    
-    if (customerId) {
-        console.log('Initializing customer data for ID:', customerId);
-        
-        // Fetch customer data
-        const customer = await fetchCustomerData(customerId);
-        
-        if (customer) {
-            // Populate form with customer data
-            populateCustomerForm(customer);
-            
-            // Set global customer ID
-            window.currentCustomerId = customerId;
-            
-            return customer;
-        } else {
-            console.error('Failed to fetch customer data');
+    try {
+        // Initialize Supabase client if not already done
+        if (!supabaseClient) {
+            supabaseClient = initSupabaseClient();
         }
-    } else {
-        console.log('No customer ID in URL, skipping customer data initialization');
+        
+        const customerId = getCustomerIdFromUrl();
+        
+        if (customerId) {
+            console.log('Initializing customer data for ID:', customerId);
+            
+            // Fetch customer data
+            const customer = await fetchCustomerData(customerId);
+            
+            if (customer) {
+                // Populate form with customer data
+                populateCustomerForm(customer);
+                
+                // Set global customer ID
+                window.currentCustomerId = customerId;
+                
+                return customer;
+            } else {
+                console.error('Failed to fetch customer data');
+            }
+        } else {
+            console.log('No customer ID in URL, skipping customer data initialization');
+        }
+    } catch (error) {
+        console.error('Error in customer data initialization:', error);
+        // Don't let errors in customer integration break the calculator
     }
     
     return null;
