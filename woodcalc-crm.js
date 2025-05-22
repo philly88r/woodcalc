@@ -5,10 +5,45 @@ let currentCustomer = null;
 
 // Function to get customer ID from URL
 function getCustomerIdFromUrl() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const customerId = urlParams.get('customerId');
-    console.log('Customer ID from URL:', customerId);
-    return customerId;
+    try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const customerId = urlParams.get('customerId');
+        
+        // Check if we have a valid UUID format
+        if (customerId && customerId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+            console.log('Valid customer ID from URL:', customerId);
+            return customerId;
+        } else if (customerId) {
+            console.log('Invalid customer ID format:', customerId);
+        }
+    } catch (error) {
+        console.error('Error parsing URL parameters:', error);
+    }
+    
+    // If we're here, we didn't find a valid ID in the URL
+    // Let's check if we're in the CRM iframe and try to get the ID from the parent
+    try {
+        if (window.parent && window.parent !== window) {
+            // We might be in an iframe, try to get customer ID from parent URL
+            const parentUrl = window.parent.location.href;
+            console.log('Parent URL:', parentUrl);
+            
+            // Extract customer ID from parent URL if possible
+            const match = parentUrl.match(/customers\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/i);
+            if (match && match[1]) {
+                console.log('Customer ID from parent URL:', match[1]);
+                return match[1];
+            }
+        }
+    } catch (error) {
+        // This might fail due to cross-origin restrictions
+        console.error('Error accessing parent frame:', error);
+    }
+    
+    // Fallback to a fixed ID for testing (REMOVE THIS IN PRODUCTION)
+    const fallbackId = '00000000-0000-0000-0000-000000000000';
+    console.log('Using fallback customer ID for testing:', fallbackId);
+    return fallbackId;
 }
 
 // Function to fetch customer details
@@ -165,8 +200,7 @@ async function initCrmIntegration() {
         console.error('No customer ID provided in URL');
     }
     
-    // Update the customer ID display
-    updateCustomerIdDisplay();
+
 }
 
 // Function to save calculation only (without creating an estimate)
@@ -247,43 +281,9 @@ async function saveCalculation(calculationData) {
     }
 }
 
-// Function to manually set customer ID (for debugging)
-function setCustomerId() {
-    const manualIdInput = document.getElementById('manual-customer-id');
-    const idDisplay = document.getElementById('customer-id-display');
-    
-    if (manualIdInput && manualIdInput.value) {
-        currentCustomerId = manualIdInput.value;
-        window.currentCustomerId = currentCustomerId;
-        
-        if (idDisplay) {
-            idDisplay.textContent = `ID set: ${currentCustomerId}`;
-        }
-        
-        console.log('Manually set customer ID:', currentCustomerId);
-        alert(`Customer ID set to: ${currentCustomerId}`);
-    } else {
-        alert('Please enter a valid customer ID');
-    }
-}
 
-// Function to update customer ID display
-function updateCustomerIdDisplay() {
-    const idDisplay = document.getElementById('customer-id-display');
-    const id = currentCustomerId || window.currentCustomerId || getCustomerIdFromUrl();
-    
-    if (idDisplay) {
-        if (id) {
-            idDisplay.textContent = `ID detected: ${id}`;
-        } else {
-            idDisplay.textContent = 'No ID detected';
-        }
-    }
-}
 
 // Make functions available globally
 window.saveCalculationToCrm = saveCalculationToCrm;
 window.saveCalculation = saveCalculation;
 window.initCrmIntegration = initCrmIntegration;
-window.setCustomerId = setCustomerId;
-window.updateCustomerIdDisplay = updateCustomerIdDisplay;
