@@ -3,8 +3,9 @@
 let currentCustomerId = null;
 let currentCustomer = null;
 
-// Function to get customer ID from URL
-function getCustomerIdFromUrl() {
+// Function to get customer ID using multiple methods
+async function getCustomerId() {
+    // Method 1: Try to get from URL parameters
     try {
         const urlParams = new URLSearchParams(window.location.search);
         const customerId = urlParams.get('customerId');
@@ -20,8 +21,53 @@ function getCustomerIdFromUrl() {
         console.error('Error parsing URL parameters:', error);
     }
     
-    // If we're here, we didn't find a valid ID in the URL
-    // Let's check if we're in the CRM iframe and try to get the ID from the parent
+    // Method 2: Try to get from localStorage (if previously stored)
+    try {
+        const storedId = localStorage.getItem('woodcalc_customer_id');
+        if (storedId && storedId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+            console.log('Customer ID from localStorage:', storedId);
+            return storedId;
+        }
+    } catch (error) {
+        console.error('Error accessing localStorage:', error);
+    }
+    
+    // Method 3: Try to get from document.referrer
+    try {
+        const referrer = document.referrer;
+        if (referrer) {
+            console.log('Referrer URL:', referrer);
+            
+            // Try to extract customer ID from referrer URL
+            const match = referrer.match(/customers\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/i);
+            if (match && match[1]) {
+                console.log('Customer ID from referrer URL:', match[1]);
+                // Store for future use
+                try { localStorage.setItem('woodcalc_customer_id', match[1]); } catch (e) {}
+                return match[1];
+            }
+        }
+    } catch (error) {
+        console.error('Error accessing referrer:', error);
+    }
+    
+    // Method 4: Try to get from server (current logged-in user)
+    try {
+        const response = await fetch('/.netlify/functions/get-current-user');
+        if (response.ok) {
+            const data = await response.json();
+            if (data.customer && data.customer.id) {
+                console.log('Customer ID from server:', data.customer.id);
+                // Store for future use
+                try { localStorage.setItem('woodcalc_customer_id', data.customer.id); } catch (e) {}
+                return data.customer.id;
+            }
+        }
+    } catch (error) {
+        console.error('Error getting current user from server:', error);
+    }
+    
+    // Method 5: Check if we're in an iframe and try to get from parent
     try {
         if (window.parent && window.parent !== window) {
             // We might be in an iframe, try to get customer ID from parent URL
@@ -32,6 +78,8 @@ function getCustomerIdFromUrl() {
             const match = parentUrl.match(/customers\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/i);
             if (match && match[1]) {
                 console.log('Customer ID from parent URL:', match[1]);
+                // Store for future use
+                try { localStorage.setItem('woodcalc_customer_id', match[1]); } catch (e) {}
                 return match[1];
             }
         }
@@ -40,10 +88,8 @@ function getCustomerIdFromUrl() {
         console.error('Error accessing parent frame:', error);
     }
     
-    // Fallback to a fixed ID for testing (REMOVE THIS IN PRODUCTION)
-    const fallbackId = '00000000-0000-0000-0000-000000000000';
-    console.log('Using fallback customer ID for testing:', fallbackId);
-    return fallbackId;
+    console.error('Could not determine customer ID using any method');
+    return null;
 }
 
 // Function to fetch customer details
@@ -64,16 +110,24 @@ async function saveCalculationToCrm(calculationData) {
     console.log('Save and create estimate called');
     
     // Try to get customer ID from multiple sources
-    const customerId = currentCustomerId || window.currentCustomerId || getCustomerIdFromUrl();
+    let customerId = currentCustomerId || window.currentCustomerId;
+    
+    // If we still don't have an ID, try to get it using all methods
+    if (!customerId) {
+        customerId = await getCustomerId();
+    }
+    
     console.log('Customer ID for save:', customerId);
     
     if (!customerId) {
-        alert('Error: No customer ID available. Please make sure you accessed this page with a proper customer ID in the URL.');
+        alert('Error: No customer ID available. Please contact support for assistance.');
         return;
     }
     
     // Ensure currentCustomerId is set
     currentCustomerId = customerId;
+    // Store for future use
+    try { localStorage.setItem('woodcalc_customer_id', customerId); } catch (e) {}
 
     if (!calculationData || !calculationData.grandTotal) {
         alert('Error: No calculation data available. Please complete the calculation first.');
@@ -167,9 +221,6 @@ async function saveCalculationToCrm(calculationData) {
 
 // Initialize CRM integration
 async function initCrmIntegration() {
-    // Try to get customer ID from URL or global variable
-    const customerId = getCustomerIdFromUrl() || window.currentCustomerId;
-    
     // Always show the buttons initially
     if (document.getElementById('save-to-crm-btn')) {
         document.getElementById('save-to-crm-btn').style.display = 'block';
@@ -178,6 +229,9 @@ async function initCrmIntegration() {
     if (document.getElementById('save-calculation-btn')) {
         document.getElementById('save-calculation-btn').style.display = 'block';
     }
+    
+    // Try to get customer ID using all available methods
+    const customerId = await getCustomerId();
     
     if (customerId) {
         currentCustomerId = customerId;
@@ -197,10 +251,8 @@ async function initCrmIntegration() {
             console.error('Error loading customer:', error);
         }
     } else {
-        console.error('No customer ID provided in URL');
+        console.error('Could not determine customer ID');
     }
-    
-
 }
 
 // Function to save calculation only (without creating an estimate)
@@ -208,16 +260,24 @@ async function saveCalculation(calculationData) {
     console.log('Save calculation called');
     
     // Try to get customer ID from multiple sources
-    const customerId = currentCustomerId || window.currentCustomerId || getCustomerIdFromUrl();
+    let customerId = currentCustomerId || window.currentCustomerId;
+    
+    // If we still don't have an ID, try to get it using all methods
+    if (!customerId) {
+        customerId = await getCustomerId();
+    }
+    
     console.log('Customer ID for save:', customerId);
     
     if (!customerId) {
-        alert('Error: No customer ID available. Please make sure you accessed this page with a proper customer ID in the URL.');
+        alert('Error: No customer ID available. Please contact support for assistance.');
         return;
     }
     
     // Ensure currentCustomerId is set
     currentCustomerId = customerId;
+    // Store for future use
+    try { localStorage.setItem('woodcalc_customer_id', customerId); } catch (e) {}
 
     if (!calculationData || !calculationData.grandTotal) {
         alert('Error: No calculation data available. Please complete the calculation first.');
