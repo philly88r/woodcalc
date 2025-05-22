@@ -26,8 +26,11 @@ async function fetchCustomerDetails(customerId) {
 
 // Function to save calculation and create estimate
 async function saveCalculationToCrm(calculationData) {
+    console.log('Save and create estimate called');
+    
     // Try to get customer ID from multiple sources
-    const customerId = currentCustomerId || window.currentCustomerId;
+    const customerId = currentCustomerId || window.currentCustomerId || getCustomerIdFromUrl();
+    console.log('Customer ID for save:', customerId);
     
     if (!customerId) {
         alert('Error: No customer ID available. Please make sure you accessed this page with a proper customer ID in the URL.');
@@ -129,11 +132,20 @@ async function saveCalculationToCrm(calculationData) {
 
 // Initialize CRM integration
 async function initCrmIntegration() {
-    const customerId = getCustomerIdFromUrl();
+    // Try to get customer ID from URL or global variable
+    const customerId = getCustomerIdFromUrl() || window.currentCustomerId;
+    
+    // Always show the buttons initially
+    if (document.getElementById('save-to-crm-btn')) {
+        document.getElementById('save-to-crm-btn').style.display = 'block';
+    }
+    
+    if (document.getElementById('save-calculation-btn')) {
+        document.getElementById('save-calculation-btn').style.display = 'block';
+    }
+    
     if (!customerId) {
         console.error('No customer ID provided in URL');
-        document.getElementById('save-to-crm-btn').style.display = 'none';
-        document.getElementById('save-calculation-btn').style.display = 'none';
         return;
     }
 
@@ -147,8 +159,7 @@ async function initCrmIntegration() {
             console.log('Customer loaded:', currentCustomer);
         } else {
             console.error('Customer not found with ID:', customerId);
-            document.getElementById('save-to-crm-btn').style.display = 'none';
-            document.getElementById('save-calculation-btn').style.display = 'none';
+            // Don't hide buttons - we'll handle missing customer in the save functions
         }
     } catch (error) {
         console.error('Error loading customer:', error);
@@ -157,8 +168,11 @@ async function initCrmIntegration() {
 
 // Function to save calculation only (without creating an estimate)
 async function saveCalculation(calculationData) {
+    console.log('Save calculation called');
+    
     // Try to get customer ID from multiple sources
-    const customerId = currentCustomerId || window.currentCustomerId;
+    const customerId = currentCustomerId || window.currentCustomerId || getCustomerIdFromUrl();
+    console.log('Customer ID for save:', customerId);
     
     if (!customerId) {
         alert('Error: No customer ID available. Please make sure you accessed this page with a proper customer ID in the URL.');
