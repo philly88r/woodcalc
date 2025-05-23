@@ -3,15 +3,30 @@
 // Use the global Supabase client that was initialized in the HTML
 // Avoid redeclaring supabase variable
 let crmSupabase = null;
-if (typeof window !== 'undefined') {
-    if (typeof window.supabase !== 'undefined') {
-        crmSupabase = window.supabase;
-        console.log('CRM using global window.supabase client');
-    } else if (typeof supabaseClient !== 'undefined') {
-        crmSupabase = supabaseClient;
-        console.log('CRM using supabaseClient from HTML');
-    } else {
-        console.warn('Supabase client not available for CRM - some features may not work');
+
+// Initialize Supabase client
+function initCrmSupabase() {
+    try {
+        if (typeof supabase !== 'undefined') {
+            const supabaseUrl = 'https://kdhwrlhzevzekoanusbs.supabase.co';
+            const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkaHdybGh6ZXZ6ZWtvYW51c2JzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDU5MzI1NDUsImV4cCI6MjAyMTUwODU0NX0.PXkR_PYOUPJvWRQGYNOy94VhgI4G9hVZ4Q6ZQ4Q4Z4Q';
+            
+            crmSupabase = supabase.createClient(supabaseUrl, supabaseAnonKey);
+            console.log('CRM Supabase client initialized');
+            return crmSupabase;
+        } else if (typeof window !== 'undefined') {
+            if (typeof window.supabaseClient !== 'undefined') {
+                crmSupabase = window.supabaseClient;
+                console.log('CRM using global window.supabaseClient');
+                return crmSupabase;
+            } else {
+                console.warn('Supabase client not available for CRM - some features may not work');
+                return null;
+            }
+        }
+    } catch (error) {
+        console.error('Error initializing CRM Supabase client:', error);
+        return null;
     }
 }
 
@@ -359,6 +374,9 @@ function updateDebugDisplay() {
 
 // Initialize CRM integration
 async function initCrmIntegration() {
+    // Initialize Supabase client first
+    crmSupabase = initCrmSupabase();
+    
     // Always show the buttons initially
     if (document.getElementById('save-to-crm-btn')) {
         document.getElementById('save-to-crm-btn').style.display = 'block';

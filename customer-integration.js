@@ -8,22 +8,27 @@ let supabaseClient = null;
 // Initialize Supabase client if available
 // Defer this initialization to avoid interfering with calculation scripts
 function initSupabaseClient() {
-    if (typeof createClient === 'function') {
-        try {
+    try {
+        // Check if the Supabase library is loaded
+        if (typeof supabase !== 'undefined') {
             const supabaseUrl = 'https://kdhwrlhzevzekoanusbs.supabase.co';
             const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkaHdybGh6ZXZ6ZWtvYW51c2JzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDU5MzI1NDUsImV4cCI6MjAyMTUwODU0NX0.PXkR_PYOUPJvWRQGYNOy94VhgI4G9hVZ4Q6ZQ4Q4Z4Q';
-            supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
+            
+            // Create the Supabase client using the global supabase object
+            supabaseClient = supabase.createClient(supabaseUrl, supabaseAnonKey);
             console.log('Supabase client initialized for customer integration');
             
             // Make it available globally
             window.supabaseClient = supabaseClient;
             return supabaseClient;
-        } catch (error) {
-            console.error('Error initializing Supabase client:', error);
+        } else {
+            console.error('Supabase library not loaded. Make sure the script is included before this file.');
             return null;
         }
+    } catch (error) {
+        console.error('Error initializing Supabase client:', error);
+        return null;
     }
-    return null;
 }
 
 // Function to get customer ID from URL

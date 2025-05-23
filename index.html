@@ -346,6 +346,13 @@
 <script src="woodcalc-main.js"></script>
 <!-- CRM integration scripts loaded after calculation scripts -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+    // Initialize Supabase globally
+    const supabaseUrl = 'https://kdhwrlhzevzekoanusbs.supabase.co';
+    const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkaHdybGh6ZXZ6ZWtvYW51c2JzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDU5MzI1NDUsImV4cCI6MjAyMTUwODU0NX0.PXkR_PYOUPJvWRQGYNOy94VhgI4G9hVZ4Q6ZQ4Q4Z4Q';
+    window.supabaseClient = supabase.createClient(supabaseUrl, supabaseAnonKey);
+    console.log('Global Supabase client initialized');
+</script>
 <script src="customer-integration.js"></script>
 <script src="woodcalc-crm.js"></script>
 
