@@ -49,27 +49,18 @@ async function fetchCustomerData(customerId) {
     }
     
     try {
-        // Try API endpoint first
-        try {
-            const response = await fetch(`/api/get-customers?id=${customerId}`);
-            if (response.ok) {
-                const data = await response.json();
-                return data;
-            }
-        } catch (apiError) {
-            console.warn('API endpoint failed, trying Netlify function:', apiError);
-        }
-        
-        // Try Netlify function
+        // Try Netlify function endpoint
         try {
             const response = await fetch(`/.netlify/functions/get-customers?id=${customerId}`);
             if (response.ok) {
                 const data = await response.json();
                 return data;
             }
-        } catch (netlifyError) {
-            console.warn('Netlify function failed, trying direct Supabase:', netlifyError);
+        } catch (apiError) {
+            console.warn('Netlify function failed, trying direct Supabase:', apiError);
         }
+        
+
         
         // If API fails, try direct Supabase connection
         if (supabaseClient) {
