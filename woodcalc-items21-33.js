@@ -238,7 +238,11 @@ function calculateItem31(itemData, inputs) {
     let description = "";
     // Get the correct post length based on fence height
     const postLength = inputs.fenceHeight === 6 ? "9" : "12";
-    const unitCost = materialCosts.posts["schedule40_4inch"]?.[postLength] || 0;
+    const unitCost = materialCosts.posts.schedule40_4inch?.[postLength] || 0;
+    
+    // Debug logging to help identify issues
+    console.log(`Cantilever post - Fence height: ${inputs.fenceHeight}, Post length: ${postLength}`);
+    console.log(`Looking up cost with key: schedule40_4inch, Length: ${postLength}, Found cost: ${unitCost}`);
     
     // Set description based on fence height
     if (inputs.fenceHeight === 6) {

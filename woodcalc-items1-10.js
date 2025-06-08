@@ -42,8 +42,17 @@ function calculateItem1(itemData, inputs) {
         else if (totalHeight <= 12.5) postLength = "12";
         else postLength = postInfo.material.startsWith('schedule40_') ? "12" : "8";
         
+        // Format the description properly
         description = `${postInfo.size.replace('.', '-')} x ${postLength}ft ${postInfo.material}`;
-        unitCost = materialCosts.posts[`${postInfo.material}_${postInfo.size}`]?.[postLength] || 0;
+        
+        // For schedule posts, we need to construct the key differently
+        // The key in materialCosts.posts is like 'schedule20_2_3_8' or 'schedule40_2_3_8'
+        const scheduleKey = `${postInfo.material}_${postInfo.size.replace('.', '_')}`;
+        unitCost = materialCosts.posts[scheduleKey]?.[postLength] || 0;
+        
+        // Debug logging to help identify issues
+        console.log(`Post type: ${inputs.standardPostType}, Material: ${postInfo.material}, Size: ${postInfo.size}`);
+        console.log(`Looking up cost with key: ${scheduleKey}, Length: ${postLength}, Found cost: ${unitCost}`);
     }
     
     // Update item data
