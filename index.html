@@ -160,7 +160,13 @@
                 <option value="8">8 ft</option>
             </select>
         </div>
-
+        <div>
+            <label for="fenceOrientation">Fence Orientation:</label>
+            <select id="fenceOrientation" onchange="calculateFence()">
+                <option value="Vertical" selected>Vertical Pickets</option>
+                <option value="Horizontal">Horizontal Pickets</option>
+            </select>
+         </div>
          <div>
             <label for="fenceStyle">Fence Style:</label> 
             <select id="fenceStyle" onchange="calculateFence()">
