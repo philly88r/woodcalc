@@ -48,8 +48,24 @@ function calculateItem1(itemData, inputs) {
         else if (totalHeight <= 12.5) postLength = "12";
         else postLength = "12"; // Default to max
         
+        // Detailed logging for wood posts
+        console.log(`Wood post - Type: ${inputs.standardPostType}, Material: ${postInfo.material}, Size: ${postInfo.size}`);
+        console.log(`Total height calculation: Fence height ${inputs.fenceHeight} + Hole depth ${inputs.holeDepthInches}/12 = ${totalHeight}ft`);
+        console.log(`Selected post length: ${postLength}ft`);
+        
+        // Check if the material exists in the costs object
+        console.log(`Available post types in material costs:`, Object.keys(materialCosts.posts));
+        
+        if (materialCosts.posts[postInfo.material]) {
+            console.log(`Available lengths for ${postInfo.material}:`, Object.keys(materialCosts.posts[postInfo.material]));
+            unitCost = materialCosts.posts[postInfo.material][postLength] || 0;
+            console.log(`Looking up cost with key: ${postInfo.material}, Length: ${postLength}, Found cost: ${unitCost}`);
+        } else {
+            console.log(`ERROR: Material ${postInfo.material} not found in cost sheet!`);
+            unitCost = 0;
+        }
+        
         description = `${postInfo.size} x ${postLength}ft ${postInfo.material.split('_')[1] || 'Post Master'}`;
-        unitCost = materialCosts.posts[postInfo.material]?.[postLength] || 0;
     } else if (postInfo.material.startsWith('schedule')) {
         // For schedule 20 or schedule 40
         let postLength;
