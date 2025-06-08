@@ -146,15 +146,50 @@ function getRecommendedCrew(totalLength) {
 // Calculate total labor costs
 function calculateLaborCosts() {
     try {
+        console.log('Starting labor cost calculation...');
+        
+        // Check if all required elements exist in the DOM
+        const requiredElements = [
+            'totalLength', 'fenceStyle', 'needsTearOut', 'needsLineClearing', 
+            'useScrews', 'travelDistance', 'numSingleGates', 'numDoubleGates', 'numSlidingGates'
+        ];
+        
+        // Optional elements that might not exist in all configurations
+        const optionalElements = ['addBaseboard', 'trimType', 'capBoardType'];
+        
+        // Check required elements
+        for (const elementId of requiredElements) {
+            if (!document.getElementById(elementId)) {
+                console.error(`Required element ${elementId} not found in DOM`);
+                throw new Error(`Required input element ${elementId} not found`);
+            }
+        }
+        
         // Get inputs from the existing form
         const totalLength = getInputValue('totalLength');
         const fenceStyle = getInputValue('fenceStyle', false);
-        const needsTearOut = document.getElementById('needsTearOut').value === "yes";
-        const needsLineClearing = document.getElementById('needsLineClearing').value === "yes";
-        const hasBaseboard = document.getElementById('addBaseboard').value;
-        const hasCapAndTrim = (document.getElementById('trimType').value !== "none" || 
-                              document.getElementById('capBoardType').value !== "none") ? "yes" : "no";
-        const useScrews = document.getElementById('useScrews').value;
+        
+        // Get values with null checks
+        const needsTearOutElement = document.getElementById('needsTearOut');
+        const needsTearOut = needsTearOutElement ? needsTearOutElement.value === "yes" : false;
+        
+        const needsLineClearingElement = document.getElementById('needsLineClearing');
+        const needsLineClearing = needsLineClearingElement ? needsLineClearingElement.value === "yes" : false;
+        
+        // Optional elements with fallbacks
+        const addBaseboardElement = document.getElementById('addBaseboard');
+        const hasBaseboard = addBaseboardElement ? addBaseboardElement.value : "no";
+        
+        const trimTypeElement = document.getElementById('trimType');
+        const capBoardTypeElement = document.getElementById('capBoardType');
+        
+        const hasCapAndTrim = (
+            (trimTypeElement && trimTypeElement.value !== "none") || 
+            (capBoardTypeElement && capBoardTypeElement.value !== "none")
+        ) ? "yes" : "no";
+        
+        const useScrewsElement = document.getElementById('useScrews');
+        const useScrews = useScrewsElement ? useScrewsElement.value : "No";
         
         // Travel distance (miles) - convert to cost
         const travelDistance = getInputValue('travelDistance');
@@ -168,12 +203,21 @@ function calculateLaborCosts() {
         
         // Get sliding gate widths from the existing form
         const slidingGateWidths = [];
-        for (let i = 1; i <= numSlidingGates; i++) {
-            // Use the existing sliding gate width fields
-            const widthFieldId = `slidingGateWidth_${i}`;
-            if (document.getElementById(widthFieldId)) {
-                slidingGateWidths.push(getInputValue(widthFieldId));
+        try {
+            for (let i = 1; i <= numSlidingGates; i++) {
+                // Use the existing sliding gate width fields
+                const widthFieldId = `slidingGateWidth_${i}`;
+                const widthElement = document.getElementById(widthFieldId);
+                if (widthElement) {
+                    slidingGateWidths.push(getInputValue(widthFieldId));
+                } else {
+                    console.warn(`Sliding gate width element ${widthFieldId} not found, using default value of 10`);
+                    slidingGateWidths.push(10); // Default width if element not found
+                }
             }
+            console.log('Sliding gate widths:', slidingGateWidths);
+        } catch (error) {
+            console.error('Error getting sliding gate widths:', error);
         }
         
         // Calculate field labor
@@ -222,6 +266,10 @@ function displayLaborResults(fieldLabor, subLabor, totalLaborCost, recommendedCr
         console.error('Labor results container not found');
         return;
     }
+    
+    console.log('Displaying labor results in container:', laborResultsContainer);
+    // Make sure the container is visible
+    laborResultsContainer.style.display = 'block';
     
     // Get materials cost from the main calculation
     const materialsCost = window.lastCalculationResult ? window.lastCalculationResult.grandTotal : 0;

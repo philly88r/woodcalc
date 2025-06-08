@@ -3,18 +3,33 @@
 
 // Update total length from pull lengths and gate widths
 function updateTotalLengthFromPulls() {
-    const pullLengthInputs = document.querySelectorAll('.pull-length-input');
-    let sumOfPulls = 0;
-    pullLengthInputs.forEach(input => { 
-        sumOfPulls += getInputValue(input.id, true); 
-    });
-    
-    // Add gate widths to the total length
-    const gateWidths = getTotalGateWidths();
-    const totalLength = sumOfPulls + gateWidths;
-    
-    document.getElementById('totalLength').value = totalLength.toFixed(totalLength % 1 === 0 ? 0 : 2);
-    calculateFence(); 
+    try {
+        const pullLengthInputs = document.querySelectorAll('.pull-length-input');
+        let sumOfPulls = 0;
+        pullLengthInputs.forEach(input => { 
+            sumOfPulls += getInputValue(input.id, true); 
+        });
+        
+        // Add gate widths to the total length
+        const gateWidths = getTotalGateWidths();
+        const totalLength = sumOfPulls + gateWidths;
+        
+        const totalLengthElement = document.getElementById('totalLength');
+        if (totalLengthElement) {
+            totalLengthElement.value = totalLength.toFixed(totalLength % 1 === 0 ? 0 : 2);
+            
+            // Only call calculateFence if it exists
+            if (typeof calculateFence === 'function') {
+                calculateFence();
+            } else {
+                console.warn('calculateFence function not available');
+            }
+        } else {
+            console.warn('totalLength element not found');
+        }
+    } catch (error) {
+        console.error('Error in updateTotalLengthFromPulls:', error);
+    }
 }
 
 // Generate pull length inputs
@@ -98,28 +113,45 @@ function getTotalActualGateWidths() {
 
 // Get total gate widths for total length calculation
 function getTotalGateWidths() {
-    const numSingleGates = getInputValue('numSingleGates');
-    const numDoubleGates = getInputValue('numDoubleGates');
-    const numSlidingGates = getInputValue('numSlidingGates');
-    
-    let totalGateWidth = 0;
-    
-    // Add single gate widths
-    for (let i = 1; i <= numSingleGates; i++) {
-        totalGateWidth += getInputValue(`singleGateWidth_${i}`, true);
+    try {
+        const numSingleGates = getInputValue('numSingleGates');
+        const numDoubleGates = getInputValue('numDoubleGates');
+        const numSlidingGates = getInputValue('numSlidingGates');
+        
+        let totalGateWidth = 0;
+        
+        // Add single gate widths
+        for (let i = 1; i <= numSingleGates; i++) {
+            try {
+                totalGateWidth += getInputValue(`singleGateWidth_${i}`, true);
+            } catch (error) {
+                console.warn(`Error getting single gate width ${i}:`, error);
+            }
+        }
+        
+        // Add double gate widths
+        for (let i = 1; i <= numDoubleGates; i++) {
+            try {
+                totalGateWidth += getInputValue(`doubleGateWidth_${i}`, true);
+            } catch (error) {
+                console.warn(`Error getting double gate width ${i}:`, error);
+            }
+        }
+        
+        // Add sliding gate widths
+        for (let i = 1; i <= numSlidingGates; i++) {
+            try {
+                totalGateWidth += getInputValue(`slidingGateWidth_${i}`, true);
+            } catch (error) {
+                console.warn(`Error getting sliding gate width ${i}:`, error);
+            }
+        }
+        
+        return totalGateWidth;
+    } catch (error) {
+        console.error('Error in getTotalGateWidths:', error);
+        return 0;
     }
-    
-    // Add double gate widths
-    for (let i = 1; i <= numDoubleGates; i++) {
-        totalGateWidth += getInputValue(`doubleGateWidth_${i}`, true);
-    }
-    
-    // Add sliding gate widths
-    for (let i = 1; i <= numSlidingGates; i++) {
-        totalGateWidth += getInputValue(`slidingGateWidth_${i}`, true);
-    }
-    
-    return totalGateWidth;
 }
 
 // Get double gate widths
@@ -144,16 +176,36 @@ function getPullLengths() {
 
 // Toggle baseboard options
 function toggleBaseboardOptions() { 
-    const addBaseboard = document.getElementById('addBaseboard').value;
+    const addBaseboardElement = document.getElementById('addBaseboard');
+    if (!addBaseboardElement) {
+        console.warn('addBaseboard element not found');
+        return;
+    }
+    
     const optionsContainer = document.getElementById('baseboardOptionsContainer');
-    optionsContainer.style.display = addBaseboard === 'yes' ? 'grid' : 'none';
+    if (!optionsContainer) {
+        console.warn('baseboardOptionsContainer element not found');
+        return;
+    }
+    
+    optionsContainer.style.display = addBaseboardElement.value === 'yes' ? 'grid' : 'none';
 }
 
 // Toggle gate post options
 function toggleGatePostOptions() { 
-    const useDifferent = document.getElementById('useDifferentGatePosts').value;
+    const useDifferentElement = document.getElementById('useDifferentGatePosts');
+    if (!useDifferentElement) {
+        console.warn('useDifferentGatePosts element not found');
+        return;
+    }
+    
     const optionsContainer = document.getElementById('gatePostOptionsContainer');
-    optionsContainer.style.display = useDifferent === 'yes' ? 'grid' : 'none';
+    if (!optionsContainer) {
+        console.warn('gatePostOptionsContainer element not found');
+        return;
+    }
+    
+    optionsContainer.style.display = useDifferentElement.value === 'yes' ? 'grid' : 'none';
 }
 
 // Export functions for use in HTML

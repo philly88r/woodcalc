@@ -233,14 +233,19 @@ function calculateFence() {
         
         // Also update labor calculations if the function exists
         if (typeof calculateLaborCosts === 'function') {
+            console.log('Calling calculateLaborCosts function...');
             calculateLaborCosts();
             
             // Ensure the labor results container is visible but don't scroll to it
             const laborContainer = document.getElementById('laborResultsContainer');
             if (laborContainer) {
                 laborContainer.style.display = 'block';
-                // Removed automatic scrolling to prevent page jumping when inputs change
+                console.log('Labor container display set to block');
+            } else {
+                console.error('Labor results container not found in the DOM');
             }
+        } else {
+            console.error('calculateLaborCosts function not found');
         }
 
     } catch (error) {
