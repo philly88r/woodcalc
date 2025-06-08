@@ -92,10 +92,28 @@ function addResultRow(results, itemNumber, item, description, qty, unitCost, tot
 }
 
 function parsePostType(postTypeValue) {
-    const parts = postTypeValue.split('_');
-    if (parts[0] === 'wood') { return { material: parts[0] + '_' + parts[1], size: parts[2] }; } 
-    else if (parts[0] === 'postMaster') { return { material: 'postMaster', size: null }; } 
-    else if (parts[0] === 'schedule20' || parts[0] === 'schedule40') { return { material: parts[0], size: parts[1].replace('-', '.') }; }
+    // Log the input to help with debugging
+    console.log('Parsing post type:', postTypeValue);
+    
+    // Handle different formats of post type values
+    if (postTypeValue.startsWith('wood_')) {
+        const parts = postTypeValue.split('_');
+        return { material: parts[0] + '_' + parts[1], size: parts[2] };
+    } 
+    else if (postTypeValue === 'postMaster') {
+        return { material: 'postMaster', size: null };
+    } 
+    else if (postTypeValue.startsWith('schedule20_') || postTypeValue.startsWith('schedule40_')) {
+        // For schedule posts in format 'schedule20_2-3/8' or 'schedule40_2-3/8'
+        const parts = postTypeValue.split('_');
+        const scheduleType = parts[0]; // 'schedule20' or 'schedule40'
+        const size = parts[1].replace('-', '.').replace('/', '_'); // Convert '2-3/8' to '2.3_8'
+        
+        console.log(`Parsed schedule post: Type=${scheduleType}, Size=${size}`);
+        return { material: scheduleType, size: size };
+    }
+    
+    console.log('Unknown post type:', postTypeValue);
     return { material: 'unknown', size: null };
 }
 

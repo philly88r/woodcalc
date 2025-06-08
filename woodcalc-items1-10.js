@@ -60,19 +60,25 @@ function calculateItem1(itemData, inputs) {
         else if (totalHeight <= 9.5) postLength = "9";
         else if (totalHeight <= 11) postLength = "10.5";
         else if (totalHeight <= 12.5) postLength = "12";
-        else postLength = postInfo.material.startsWith('schedule40_') ? "12" : "8";
+        else postLength = postInfo.material.startsWith('schedule40') ? "12" : "8";
         
-        // Format the description properly
-        description = `${postInfo.size.replace('.', '-')} x ${postLength}ft ${postInfo.material}`;
+        // Format the description properly for display
+        description = `${postInfo.size.replace('_', '/').replace('.', '-')} x ${postLength}ft ${postInfo.material}`;
         
-        // For schedule posts, we need to construct the key differently
         // The key in materialCosts.posts is like 'schedule20_2_3_8' or 'schedule40_2_3_8'
-        const scheduleKey = `${postInfo.material}_${postInfo.size.replace('.', '_')}`;
-        unitCost = materialCosts.posts[scheduleKey]?.[postLength] || 0;
+        // We need to construct this key correctly based on the material and size
+        const scheduleKey = `${postInfo.material}_${postInfo.size}`;
         
-        // Debug logging to help identify issues
-        console.log(`Post type: ${inputs.standardPostType}, Material: ${postInfo.material}, Size: ${postInfo.size}`);
-        console.log(`Looking up cost with key: ${scheduleKey}, Length: ${postLength}, Found cost: ${unitCost}`);
+        console.log(`Looking up cost with key: ${scheduleKey}, Length: ${postLength}`);
+        
+        // Access the cost directly from the materialCosts object
+        if (materialCosts.posts[scheduleKey]) {
+            unitCost = materialCosts.posts[scheduleKey][postLength] || 0;
+            console.log(`Found cost: ${unitCost} for ${scheduleKey} with length ${postLength}`);
+        } else {
+            console.log(`Cost not found for ${scheduleKey}. Available keys:`, Object.keys(materialCosts.posts));
+            unitCost = 0;
+        }
     }
     
     // Update item data
