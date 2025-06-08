@@ -97,17 +97,24 @@ function parsePostType(postTypeValue) {
     
     // Handle different formats of post type values
     if (postTypeValue.startsWith('wood_')) {
+        // For wood posts, the material key in the cost sheet includes the full post type
+        // e.g., 'wood_treated_4x4' or 'wood_cedar_4x4'
         const parts = postTypeValue.split('_');
-        return { material: parts[0] + '_' + parts[1], size: parts[2] };
+        
+        // Return the full post type as the material key for direct lookup in materialCosts
+        return { 
+            material: postTypeValue,  // Use the full value as the material key
+            size: parts[2]           // Still extract size for display purposes
+        };
     } 
     else if (postTypeValue === 'postMaster') {
         return { material: 'postMaster', size: null };
     } 
     else if (postTypeValue.startsWith('schedule20_') || postTypeValue.startsWith('schedule40_')) {
-        // For schedule posts in format 'schedule20_2-3/8' or 'schedule40_2-3/8'
+        // For schedule posts in format 'schedule20_2_3_8' or 'schedule40_2_3_8'
         const parts = postTypeValue.split('_');
         const scheduleType = parts[0]; // 'schedule20' or 'schedule40'
-        const size = parts[1].replace('-', '.').replace('/', '_'); // Convert '2-3/8' to '2.3_8'
+        const size = parts.slice(1).join('_'); // Get the rest as size (already in correct format)
         
         console.log(`Parsed schedule post: Type=${scheduleType}, Size=${size}`);
         return { material: scheduleType, size: size };

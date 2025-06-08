@@ -14,26 +14,46 @@ function calculateItem1(itemData, inputs) {
     let description = "";
     let unitCost = 0;
     
-    // Step 1 & 2: Calculate for each pull length and sum them
-    inputs.pullLengths.forEach(pullLength => {
+    // STEP 1: Calculate posts for each fence run separately using the exact formula: INT((Length - 1) ÷ Post Spacing) + 2
+    let runDetails = [];
+    let totalBeforeAdjustments = 0;
+    
+    inputs.pullLengths.forEach((pullLength, index) => {
         if (pullLength > 0 && inputs.postSpacing > 0) {
-            // For each section: (length-1) ÷ spacing, round down, add 2 end posts
-            qty += Math.floor((pullLength - 1) / inputs.postSpacing) + 2;
+            // Apply the formula exactly as specified
+            const postsForRun = Math.floor((pullLength - 1) / inputs.postSpacing) + 2;
+            runDetails.push({
+                run: index + 1,
+                length: pullLength,
+                posts: postsForRun
+            });
+            totalBeforeAdjustments += postsForRun;
+            
+            console.log(`Run ${index + 1}: INT((${pullLength} - 1) ÷ ${inputs.postSpacing}) + 2 = ${postsForRun} posts`);
         }
     });
     
-    // Step 3: Subtract corner overlaps (where fence runs connect)
-    // Each corner connects two fence runs, so we subtract one post per corner
+    console.log(`Total posts before adjustments: ${totalBeforeAdjustments}`);
+    
+    // STEP 2: Subtract corner overlaps to avoid double-counting
+    let cornersAdjustment = 0;
     if (inputs.numCorners > 0) {
-        qty -= inputs.numCorners;
+        cornersAdjustment = inputs.numCorners;
+        console.log(`Subtracting ${cornersAdjustment} corner overlaps`);
     }
     
-    // Step 3 continued: Subtract gate openings
-    // For each gate, we subtract one post since gates replace fence sections
+    // STEP 3: Subtract gate openings where fence posts aren't needed
     const totalGates = inputs.numSingleGates + inputs.numDoubleGates + inputs.numSlidingGates;
+    let gatesAdjustment = 0;
     if (totalGates > 0) {
-        qty -= totalGates;
+        gatesAdjustment = totalGates;
+        console.log(`Subtracting ${gatesAdjustment} gate openings`);
     }
+    
+    // Calculate final quantity using the formula: Total Posts = [Sum of all runs] - [Number of corners] - [Gate posts]
+    qty = totalBeforeAdjustments - cornersAdjustment - gatesAdjustment;
+    console.log(`Final post quantity: ${totalBeforeAdjustments} - ${cornersAdjustment} - ${gatesAdjustment} = ${qty} posts`);
+
     
     // Get post type and determine description based on height
     const postInfo = parsePostType(inputs.standardPostType);
@@ -60,12 +80,20 @@ function calculateItem1(itemData, inputs) {
             console.log(`Available lengths for ${postInfo.material}:`, Object.keys(materialCosts.posts[postInfo.material]));
             unitCost = materialCosts.posts[postInfo.material][postLength] || 0;
             console.log(`Looking up cost with key: ${postInfo.material}, Length: ${postLength}, Found cost: ${unitCost}`);
+            
+            // Format the description properly for display
+            if (postInfo.material.startsWith('wood_')) {
+                const parts = postInfo.material.split('_');
+                const woodType = parts[1]; // 'treated' or 'cedar'
+                description = `${postInfo.size} x ${postLength}ft ${woodType}`;
+            } else {
+                description = `${postInfo.size} x ${postLength}ft Post Master`;
+            }
         } else {
             console.log(`ERROR: Material ${postInfo.material} not found in cost sheet!`);
             unitCost = 0;
+            description = `${postInfo.size} x ${postLength}ft Unknown`;
         }
-        
-        description = `${postInfo.size} x ${postLength}ft ${postInfo.material.split('_')[1] || 'Post Master'}`;
     } else if (postInfo.material.startsWith('schedule')) {
         // For schedule 20 or schedule 40
         let postLength;
