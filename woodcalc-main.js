@@ -31,8 +31,9 @@ function calculateFence() {
         }
         
         const fenceHeight = getInputValue('fenceHeight');
-        const fenceOrientation = getInputValue('fenceOrientation', false);
         const fenceStyle = getInputValue('fenceStyle', false);
+        // For backward compatibility, determine orientation based on style
+        const fenceOrientation = (fenceStyle === 'Horizontal Pickets') ? 'Horizontal' : 'Vertical';
         const postSpacing = getInputValue('postSpacing');
         const standardPostType = getInputValue('standardPostType', false);
         const holeDepthInches = getInputValue('holeDepth');
