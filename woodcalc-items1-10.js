@@ -29,7 +29,7 @@ function calculateItem1(itemData, inputs) {
         else postLength = "12"; // Default to max
         
         description = `${postInfo.size} x ${postLength}ft ${postInfo.material.split('_')[1] || 'Post Master'}`;
-        unitCost = materialCosts.posts[inputs.standardPostType]?.[postLength] || 0;
+        unitCost = materialCosts.posts[postInfo.material]?.[postLength] || 0;
     } else if (postInfo.material.startsWith('schedule')) {
         // For schedule 20 or schedule 40
         let postLength;
@@ -43,7 +43,7 @@ function calculateItem1(itemData, inputs) {
         else postLength = postInfo.material.startsWith('schedule40_') ? "12" : "8";
         
         description = `${postInfo.size.replace('.', '-')} x ${postLength}ft ${postInfo.material}`;
-        unitCost = materialCosts.posts[inputs.standardPostType]?.[postLength] || 0;
+        unitCost = materialCosts.posts[`${postInfo.material}_${postInfo.size}`]?.[postLength] || 0;
     }
     
     // Update item data

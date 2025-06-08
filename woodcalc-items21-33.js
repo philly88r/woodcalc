@@ -236,7 +236,9 @@ function calculateItem31(itemData, inputs) {
     
     const qty = inputs.numSlidingGates * 3;
     let description = "";
-    const unitCost = materialCosts.posts.schedule40_4inch?.[inputs.fenceHeight === 6 ? "9" : "12"] || 0;
+    // Get the correct post length based on fence height
+    const postLength = inputs.fenceHeight === 6 ? "9" : "12";
+    const unitCost = materialCosts.posts["schedule40_4inch"]?.[postLength] || 0;
     
     // Set description based on fence height
     if (inputs.fenceHeight === 6) {
