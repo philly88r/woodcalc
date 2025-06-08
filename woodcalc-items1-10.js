@@ -3,17 +3,37 @@
 
 // --- Item 1: Post ---
 function calculateItem1(itemData, inputs) {
-    // Formula: Quantity = integer answer of [ (pull length – 1) / post spacing ] +2
+    /* 
+    Formula: 
+    Step 1: For each fence section: (length-1) ÷ post spacing, round down, then add 2 end posts
+    Step 2: Add all fence runs together
+    Step 3: Subtract corner overlaps and gate openings
+    Total Posts = [Sum of all fence runs] - [Corner overlaps] - [Gate openings]
+    */
     let qty = 0;
     let description = "";
     let unitCost = 0;
     
-    // Calculate for each pull length
+    // Step 1 & 2: Calculate for each pull length and sum them
     inputs.pullLengths.forEach(pullLength => {
         if (pullLength > 0 && inputs.postSpacing > 0) {
+            // For each section: (length-1) ÷ spacing, round down, add 2 end posts
             qty += Math.floor((pullLength - 1) / inputs.postSpacing) + 2;
         }
     });
+    
+    // Step 3: Subtract corner overlaps (where fence runs connect)
+    // Each corner connects two fence runs, so we subtract one post per corner
+    if (inputs.numCorners > 0) {
+        qty -= inputs.numCorners;
+    }
+    
+    // Step 3 continued: Subtract gate openings
+    // For each gate, we subtract one post since gates replace fence sections
+    const totalGates = inputs.numSingleGates + inputs.numDoubleGates + inputs.numSlidingGates;
+    if (totalGates > 0) {
+        qty -= totalGates;
+    }
     
     // Get post type and determine description based on height
     const postInfo = parsePostType(inputs.standardPostType);

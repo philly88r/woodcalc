@@ -18,6 +18,7 @@ function calculateFence() {
         // --- Get All Inputs ---
         const numStretches = getInputValue('numStretches');
         const totalLengthWithGates = getInputValue('totalLength');
+        const numCorners = getInputValue('numCorners');
         
         // Get pull lengths if using stretches
         const pullLengths = [];
@@ -98,6 +99,7 @@ function calculateFence() {
             totalLengthWithGates,
             totalLengthWithoutGates,
             pullLengths,
+            numCorners,
             fenceHeight,
             fenceOrientation,
             fenceStyle,
