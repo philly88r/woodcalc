@@ -1,34 +1,38 @@
 // CRM Integration for Wood Fence Calculator
 
 // Use the global Supabase client that was initialized in the HTML
-// Avoid redeclaring supabase variable
+// Global variable to hold our Supabase client instance
 let crmSupabase = null;
 
 // Initialize Supabase client
 function initCrmSupabase() {
     try {
-        if (typeof supabase !== 'undefined') {
+        // First try to use the window.supabase client that was initialized in the HTML
+        if (typeof window !== 'undefined' && window.supabase) {
+            crmSupabase = window.supabase;
+            console.log('CRM using global window.supabase client');
+            return crmSupabase;
+        } 
+        // Fallback to creating our own client if needed
+        else if (typeof supabase !== 'undefined') {
             const supabaseUrl = 'https://kdhwrlhzevzekoanusbs.supabase.co';
-            const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkaHdybGh6ZXZ6ZWtvYW51c2JzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDU5MzI1NDUsImV4cCI6MjAyMTUwODU0NX0.PXkR_PYOUPJvWRQGYNOy94VhgI4G9hVZ4Q6ZQ4Q4Z4Q';
+            const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkaHdybGh6ZXZ6ZWtvYW51c2JzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzc1NTczNDUsImV4cCI6MjA1MzEzMzM0NX0.qAA2en6uQPoTDq9oivjfSHajQjY6VKFQ2ymtwgJAyx8';
             
             crmSupabase = supabase.createClient(supabaseUrl, supabaseAnonKey);
-            console.log('CRM Supabase client initialized');
+            console.log('CRM Supabase client initialized locally');
             return crmSupabase;
-        } else if (typeof window !== 'undefined') {
-            if (typeof window.supabaseClient !== 'undefined') {
-                crmSupabase = window.supabaseClient;
-                console.log('CRM using global window.supabaseClient');
-                return crmSupabase;
-            } else {
-                console.warn('Supabase client not available for CRM - some features may not work');
-                return null;
-            }
+        } else {
+            console.warn('Supabase client not available for CRM - some features may not work');
+            return null;
         }
     } catch (error) {
         console.error('Error initializing CRM Supabase client:', error);
         return null;
     }
 }
+
+// Initialize the Supabase client immediately when this script loads
+crmSupabase = initCrmSupabase();
 
 // Global variables
 let currentCustomerId = null;
@@ -181,13 +185,13 @@ async function saveCalculationToCrm(calculationData) {
         customerId = await getCustomerId();
     }
     
-    console.log('Customer ID for save:', customerId);
-    
+    // If still no customer ID, use a default ID for anonymous calculations
     if (!customerId) {
-        console.error('No customer ID available');
-        alert('Error: No customer ID available. Please contact support for assistance.');
-        return;
+        customerId = '00000000-0000-0000-0000-000000000000'; // Default anonymous customer ID
+        console.log('Using default anonymous customer ID');
     }
+    
+    console.log('Customer ID for save:', customerId);
     
     // Ensure currentCustomerId is set
     currentCustomerId = customerId;
@@ -334,6 +338,44 @@ async function saveCalculationToCrm(calculationData) {
 
         const estimateResult = await estimateResponse.json();
         console.log('Estimate created:', estimateResult);
+        
+        // Save individual material line items to estimate_line_items table
+        if (estimateResult.id && itemData && Object.keys(itemData).length > 0 && crmSupabase) {
+            try {
+                const lineItems = [];
+                
+                for (const [itemNumber, item] of Object.entries(itemData)) {
+                    // Only save material items with quantity > 0
+                    // Skip labor items (typically have item numbers > 100 or specific categories)
+                    if (item.qty > 0 && parseInt(itemNumber) <= 100) {
+                        lineItems.push({
+                            estimate_id: estimateResult.id,
+                            material_id: null, // We don't have direct material_id mapping
+                            quantity: item.qty,
+                            description: `${item.item} - ${item.description || ''}`,
+                            unit_cost: item.unitCost,
+                            subtotal: item.totalCost
+                        });
+                    }
+                }
+                
+                if (lineItems.length > 0) {
+                    const { data: savedLineItems, error: lineItemsError } = await crmSupabase
+                        .from('estimate_line_items')
+                        .insert(lineItems)
+                        .select();
+                    
+                    if (lineItemsError) {
+                        console.error('Error saving estimate line items:', lineItemsError);
+                    } else {
+                        console.log('Saved estimate line items:', savedLineItems);
+                    }
+                }
+            } catch (lineItemError) {
+                console.error('Error saving estimate line items:', lineItemError);
+                // Don't throw error here, as the main estimate was already created
+            }
+        }
 
         // Redirect to the estimate in CRM
         if (estimateResult.redirectUrl) {

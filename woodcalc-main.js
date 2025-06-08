@@ -222,13 +222,24 @@ function calculateFence() {
         if (tableContainer) tableContainer.innerHTML = results.html;
         if (grandTotalP) grandTotalP.textContent = `Grand Total: $${results.grandTotal.toFixed(2)}`;
 
-        // Store calculation result for CRM integration
+        // Store calculation result
         window.lastCalculationResult = {
             grandTotal: results.grandTotal,
             itemData: itemData,
-            calculationDate: new Date().toISOString(),
-            results: results
+            calculationDate: new Date().toISOString()
         };
+        
+        // Also update labor calculations if the function exists
+        if (typeof calculateLaborCosts === 'function') {
+            calculateLaborCosts();
+            
+            // Ensure the labor results container is visible but don't scroll to it
+            const laborContainer = document.getElementById('laborResultsContainer');
+            if (laborContainer) {
+                laborContainer.style.display = 'block';
+                // Removed automatic scrolling to prevent page jumping when inputs change
+            }
+        }
 
     } catch (error) {
         console.error('Error in calculation:', error);
@@ -238,4 +249,145 @@ function calculateFence() {
 }
 
 // Export functions for use in HTML
+
+// Set up event listeners for save buttons when the document is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Save calculation button
+    const saveCalculationBtn = document.getElementById('save-calculation-btn');
+    if (saveCalculationBtn) {
+        saveCalculationBtn.addEventListener('click', async function() {
+            const saveMessage = document.getElementById('saveMessage');
+            const saveError = document.getElementById('saveError');
+            
+            // Clear previous messages
+            if (saveMessage) {
+                saveMessage.textContent = '';
+                saveMessage.classList.add('hidden');
+            }
+            if (saveError) {
+                saveError.textContent = '';
+                saveError.classList.add('hidden');
+            }
+            
+            // Check if we have calculation results
+            if (!window.lastCalculationResult) {
+                if (saveError) {
+                    saveError.textContent = 'Please complete a calculation first.';
+                    saveError.classList.remove('hidden');
+                }
+                return;
+            }
+            
+            try {
+                // Show loading state
+                saveCalculationBtn.disabled = true;
+                saveCalculationBtn.textContent = 'Saving...';
+                
+                // Call the save function
+                if (typeof window.saveCalculation === 'function') {
+                    await window.saveCalculation(window.lastCalculationResult);
+                    
+                    // Show success message
+                    if (saveMessage) {
+                        saveMessage.textContent = 'Calculation saved successfully!';
+                        saveMessage.classList.remove('hidden');
+                    }
+                } else {
+                    throw new Error('Save function not available');
+                }
+            } catch (error) {
+                console.error('Error saving calculation:', error);
+                if (saveError) {
+                    saveError.textContent = `Error: ${error.message || 'Failed to save calculation'}`;
+                    saveError.classList.remove('hidden');
+                }
+            } finally {
+                // Reset button state
+                saveCalculationBtn.disabled = false;
+                saveCalculationBtn.textContent = 'Save Calculation';
+            }
+        });
+    }
+    
+    // Save and create estimate button
+    const saveToCrmBtn = document.getElementById('save-to-crm-btn');
+    if (saveToCrmBtn) {
+        saveToCrmBtn.addEventListener('click', async function() {
+            const saveMessage = document.getElementById('saveMessage');
+            const saveError = document.getElementById('saveError');
+            
+            // Clear previous messages
+            if (saveMessage) {
+                saveMessage.textContent = '';
+                saveMessage.classList.add('hidden');
+            }
+            if (saveError) {
+                saveError.textContent = '';
+                saveError.classList.add('hidden');
+            }
+            
+            // Check if we have calculation results
+            if (!window.lastCalculationResult) {
+                if (saveError) {
+                    saveError.textContent = 'Please complete a calculation first.';
+                    saveError.classList.remove('hidden');
+                }
+                return;
+            }
+            
+            try {
+                // Show loading state
+                saveToCrmBtn.disabled = true;
+                saveToCrmBtn.textContent = 'Saving...';
+                
+                // Call the save to CRM function
+                if (typeof window.saveCalculationToCrm === 'function') {
+                    await window.saveCalculationToCrm(window.lastCalculationResult);
+                    
+                    // Show success message
+                    if (saveMessage) {
+                        saveMessage.textContent = 'Calculation saved successfully!';
+                        saveMessage.classList.remove('hidden');
+                    }
+                    
+                    // Get customer ID to redirect to profile
+                    let customerId = window.currentCustomerId;
+                    if (!customerId) {
+                        // Try to get it from the UI element
+                        const customerIdElement = document.getElementById('calculator-customer-id');
+                        if (customerIdElement && customerIdElement.textContent) {
+                            customerId = customerIdElement.textContent.trim();
+                        }
+                        
+                        // If still no ID, try URL parameters
+                        if (!customerId) {
+                            const params = new URLSearchParams(window.location.search);
+                            customerId = params.get('customerId') || params.get('customer_id');
+                        }
+                    }
+                    
+                    // Redirect to customer profile on STFAD site
+                    if (customerId) {
+                        // Short delay to show the success message before redirecting
+                        setTimeout(() => {
+                            window.location.href = `https://stfad.netlify.app/customers/${customerId}`;
+                        }, 1000);
+                    }
+                } else {
+                    throw new Error('Save to CRM function not available');
+                }
+            } catch (error) {
+                console.error('Error saving to CRM:', error);
+                if (saveError) {
+                    saveError.textContent = `Error: ${error.message || 'Failed to save to CRM'}`;
+                    saveError.classList.remove('hidden');
+                }
+            } finally {
+                // Reset button state
+                saveToCrmBtn.disabled = false;
+                saveToCrmBtn.textContent = 'Save & Return to Profile';
+            }
+        });
+    }
+});
 window.calculateFence = calculateFence;

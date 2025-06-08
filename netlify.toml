@@ -1,5 +1,4 @@
 [build]
-  command = ""
   publish = "."
   functions = "netlify/functions"
 
@@ -13,8 +12,8 @@
   status = 200
   force = true
 
-# Allow direct access to Netlify functions
-[[redirects]]
-  from = "/.netlify/functions/*"
-  to = "/.netlify/functions/:splat"
-  status = 200
+# Allow direct access to Netlify functions - commented out to fix deployment issue
+# [[redirects]]
+#   from = "/.netlify/functions/*"
+#   to = "/.netlify/functions/:splat"
+#   status = 200

@@ -1,14 +1,19 @@
 // Wood Fence Calculator - Helper Functions
 // This file contains helper functions for the Wood Fence Calculator
 
-// Update total length from pull lengths
+// Update total length from pull lengths and gate widths
 function updateTotalLengthFromPulls() {
     const pullLengthInputs = document.querySelectorAll('.pull-length-input');
     let sumOfPulls = 0;
     pullLengthInputs.forEach(input => { 
         sumOfPulls += getInputValue(input.id, true); 
     });
-    document.getElementById('totalLength').value = sumOfPulls.toFixed(sumOfPulls % 1 === 0 ? 0 : 2);
+    
+    // Add gate widths to the total length
+    const gateWidths = getTotalGateWidths();
+    const totalLength = sumOfPulls + gateWidths;
+    
+    document.getElementById('totalLength').value = totalLength.toFixed(totalLength % 1 === 0 ? 0 : 2);
     calculateFence(); 
 }
 
@@ -61,10 +66,10 @@ function generateGateWidthInputs(gateTypePrefix, count) {
         }
         const defaultWidth = gateTypePrefix === 'single' ? 3 : (gateTypePrefix === 'double' ? 6 : 10);
         div.innerHTML = `<label for="${gateTypePrefix}GateWidth_${i+1}" class="text-sm">Width for ${gateTypePrefix.charAt(0).toUpperCase() + gateTypePrefix.slice(1)} Gate ${i+1} (ft):</label>
-                       <input type="number" id="${gateTypePrefix}GateWidth_${i+1}" class="gate-width-input mt-1 block w-full p-2" min="0" step="any" value="${defaultWidth}" oninput="calculateFence()">`; 
+                       <input type="number" id="${gateTypePrefix}GateWidth_${i+1}" class="gate-width-input mt-1 block w-full p-2" min="0" step="any" value="${defaultWidth}" oninput="updateTotalLengthFromPulls()">`;  
         container.appendChild(div);
     }
-    calculateFence(); 
+    updateTotalLengthFromPulls(); 
 }
 
 // Handle number of single gates change
@@ -89,6 +94,32 @@ function getTotalActualGateWidths() {
         totalWidth += getInputValue(input.id, true);
     });
     return totalWidth;
+}
+
+// Get total gate widths for total length calculation
+function getTotalGateWidths() {
+    const numSingleGates = getInputValue('numSingleGates');
+    const numDoubleGates = getInputValue('numDoubleGates');
+    const numSlidingGates = getInputValue('numSlidingGates');
+    
+    let totalGateWidth = 0;
+    
+    // Add single gate widths
+    for (let i = 1; i <= numSingleGates; i++) {
+        totalGateWidth += getInputValue(`singleGateWidth_${i}`, true);
+    }
+    
+    // Add double gate widths
+    for (let i = 1; i <= numDoubleGates; i++) {
+        totalGateWidth += getInputValue(`doubleGateWidth_${i}`, true);
+    }
+    
+    // Add sliding gate widths
+    for (let i = 1; i <= numSlidingGates; i++) {
+        totalGateWidth += getInputValue(`slidingGateWidth_${i}`, true);
+    }
+    
+    return totalGateWidth;
 }
 
 // Get double gate widths
@@ -134,6 +165,7 @@ window.handleNumSingleGatesChange = handleNumSingleGatesChange;
 window.handleNumDoubleGatesChange = handleNumDoubleGatesChange;
 window.handleNumSlidingGatesChange = handleNumSlidingGatesChange;
 window.getTotalActualGateWidths = getTotalActualGateWidths;
+window.getTotalGateWidths = getTotalGateWidths;
 window.getDoubleGateWidths = getDoubleGateWidths;
 window.getPullLengths = getPullLengths;
 window.toggleBaseboardOptions = toggleBaseboardOptions;

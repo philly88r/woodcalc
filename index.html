@@ -3,70 +3,149 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wood Fence Calculator - Comprehensive</title>
+    <title>Wood Fence Calculator</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Load our modular JavaScript files -->
+    <!-- Supabase Client Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        label { margin-top: 0.5rem; display: block; font-weight: 500; color: #374151; /* gray-700 */ }
+        :root {
+            --st-dark-red: #8B2324;
+            --st-brown: #9F7B4F;
+            --st-light-brown: #C8A77D;
+            --st-black: #222;
+            --st-white: #fff;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--st-black);
+            background-color: #f9f9f9;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header-logo {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            background-color: var(--st-dark-red);
+            padding: 1rem;
+            border-radius: 0.5rem;
+        }
+        
+        .header-logo img {
+            max-height: 100px;
+        }
+        
+        h1 {
+            color: var(--st-dark-red);
+            margin-bottom: 1.5rem;
+        }
+        
+        h2, h3 {
+            color: var(--st-dark-red);
+        }
+        
         input, select {
             width: 100%;
-            padding: 0.6rem;
-            margin-top: 0.25rem;
-            border-radius: 0.375rem; /* rounded-md */
-            border: 1px solid #D1D5DB; /* gray-300 */
-            background-color: #F9FAFB; /* gray-50 */
+            padding: 0.5rem;
+            border: 1px solid var(--st-light-brown);
+            border-radius: 0.25rem;
+            background-color: white;
         }
-        input:focus, select:focus {
-            outline: 2px solid transparent;
-            outline-offset: 2px;
-            border-color: #2563EB; /* blue-600 */
-            box-shadow: 0 0 0 2px #BFDBFE; /* blue-200 */
+        
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
         }
-        input[readonly] {
-            background-color: #E5E7EB; /* gray-200 */
-            color: #4B5563; /* gray-600 */
-            cursor: not-allowed;
+        
+        button {
+            cursor: pointer;
+            background-color: var(--st-dark-red) !important;
         }
-        /* Removed button styles */
-        .results-table th, .results-table td {
-            padding: 0.5rem 0.75rem; /* Adjusted padding */
+        
+        button:hover {
+            background-color: #6B1A1B !important;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 0.75rem;
             text-align: left;
-            border-bottom: 1px solid #E5E7EB; /* gray-200 */
-            font-size: 0.875rem; /* Smaller font size */
+            border-bottom: 1px solid #e2e8f0;
         }
-        .results-table th {
-            background-color: #F3F4F6; /* gray-100 */
+        
+        th {
+            background-color: var(--st-dark-red);
+            color: var(--st-white);
             font-weight: 600;
         }
-        #grandTotal { color: #065F46; /* emerald-800 */ }
-        #errorMessage { background-color: #FEE2E2; color: #B91C1C; padding: 0.75rem; border-radius: 0.375rem; margin-top: 1rem; }
+        
+        tr:hover {
+            background-color: #f7fafc;
+        }
+        
         .input-group-title {
-            grid-column: 1 / -1; 
-            margin-top: 1.25rem;
-            margin-bottom: -0.25rem; 
-            font-size: 1.125rem; 
-            font-weight: 600;
-            color: #1F2937; 
-            border-bottom: 1px solid #D1D5DB; /* gray-300 */
-            padding-bottom: 0.375rem;
+            font-weight: 700;
+            color: var(--st-dark-red);
+            border-bottom: 2px solid var(--st-light-brown);
+            padding-bottom: 0.5rem;
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: block;
+            width: 100%;
         }
         #pullLengthsContainer > div, #singleGateWidthsContainer > div, #doubleGateWidthsContainer > div { margin-bottom: 0.5rem; }
         .hidden-options { display: none; } 
     </style>
 </head>
-<body class="bg-gray-100 p-4 md:p-8">
-    <div class="max-w-4xl mx-auto bg-white p-6 md:p-10 rounded-xl shadow-2xl">
-        <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-8 text-center">Wood Fence Calculator (Comprehensive)</h1>
-<div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 mb-8">
-        <h3 class="input-group-title">General Fence Dimensions & Style</h3>
-        <div>
-            <label for="numStretches">Number of Stretches/Pulls:</label>
-            <input type="number" id="numStretches" value="1" title="Enter 0 to manually input total length. Otherwise, enter number of distinct fence lines." oninput="handleNumStretchesChange()"> 
+<body class="bg-gray-50">
+<div class="container mx-auto px-4 py-8">
+    <div class="header-logo">
+        <img src="images/southtexas-logo.png" alt="South Texas Logo">
+    </div>
+    <h1 class="text-3xl md:text-4xl font-bold text-center mb-8">Wood Fence Calculator</h1>
+
+    <!-- Customer Information Section -->
+    <div id="customerInfoSection" class="mb-8 p-4 border border-gray-300 rounded-lg bg-white shadow">
+        <div id="return-button-container" class="text-right mb-2" style="display: none;">
+            <button id="return-to-crm-btn" class="bg-blue-600 hover:bg-blue-700 text-white py-1 px-3 rounded text-sm">
+                ← Return to Customer Profile
+            </button>
         </div>
-        <div>
-            <label for="totalLength">Total Calculated Length (ft):</label>
-            <input type="number" id="totalLength" value="655" readonly title="Auto-calculated from pull lengths if Number of Stretches > 0." oninput="calculateFence()"> 
+        <h3 class="input-group-title !mt-0 !mb-4 !border-b-0 text-xl">Customer Information</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 text-sm">
+            <div><strong>Customer ID:</strong> <span id="calculator-customer-id">N/A</span></div>
+            <div><strong>Name:</strong> <span id="calculator-customer-name">N/A</span></div>
+            <div><strong>Email:</strong> <span id="calculator-customer-email">N/A</span></div>
+            <div><strong>Phone:</strong> <span id="calculator-customer-phone">N/A</span></div>
+            <div class="md:col-span-2"><strong>Address:</strong> <span id="calculator-customer-address">N/A</span></div>
+        </div>
+    </div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 mb-8">
+        <h3 class="input-group-title md:col-span-2">General Fence Dimensions & Style</h3>
+        <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-x-6">
+            <div>
+                <label for="numStretches">Number of Stretches/Pulls:</label>
+                <input type="number" id="numStretches" value="1" title="Enter 0 to manually input total length. Otherwise, enter number of distinct fence lines." oninput="handleNumStretchesChange()"> 
+            </div>
+            <div>
+                <label for="totalLength">Total Calculated Length (ft):</label>
+                <input type="number" id="totalLength" value="655" readonly title="Auto-calculated from pull lengths if Number of Stretches > 0." oninput="calculateFence()"> 
+            </div>
         </div>
         
         <div id="pullLengthsContainer" class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-0 mt-0">
@@ -93,7 +172,8 @@
             <select id="fenceStyle" onchange="calculateFence()">
                 <option value="Privacy" selected>Privacy</option>
                 <option value="Picket Style">Picket Style</option>
-                <option value="Shadowbox">Shadowbox/Board on Board</option>
+                <option value="Shadowbox">Shadowbox</option>
+                <option value="Board on Board">Board on Board</option>
             </select>
         </div>
         <div>
@@ -115,7 +195,11 @@
         </div>
         <div>
             <label for="postSpacing">Post Spacing (ft):</label>
-            <input type="number" id="postSpacing" value="8" oninput="calculateFence()"> 
+            <select id="postSpacing" onchange="calculateFence()">
+                <option value="4">4 ft</option>
+                <option value="6">6 ft</option>
+                <option value="8" selected>8 ft</option>
+            </select>
         </div>
         <div>
             <label for="holeDepth">Depth of Post Hole (inches):</label>
@@ -133,13 +217,6 @@
                 <option value="yellow" selected>Yellow Bag (60lb)</option>
             </select>
         </div>
-        <div>
-            <label for="decorativePostCaps">Add Decorative Wood Post Caps?</label>
-            <select id="decorativePostCaps" onchange="calculateFence()">
-                <option value="no" selected>No</option>
-                <option value="yes">Yes</option>
-            </select>
-        </div>
 
         <h3 class="input-group-title">Picket Details</h3>
         <div>
@@ -152,11 +229,11 @@
         </div>
         <div>
             <label for="picketWidth">Picket/Board Dimension (Width for Vertical, Height for Horizontal - inches):</label>
-            <input type="number" step="0.1" id="picketWidth" value="5.5" oninput="calculateFence()"> 
-        </div>
-        <div>
-            <label for="picketGap">Picket/Board Gap (inches):</label> 
-            <input type="number" step="0.1" id="picketGap" value="0" title="Enter 0 for side-by-side. Note: Gap may be handled differently by formulas based on Style/Material." oninput="calculateFence()"> 
+            <select id="picketWidth" onchange="calculateFence()">
+                <option value="4">4 inches</option>
+                <option value="5.5" selected>5.5 inches</option>
+                <option value="6">6 inches</option>
+            </select>
         </div>
 
         <h3 class="input-group-title">Rail Configuration</h3>
@@ -164,50 +241,15 @@
             <label for="numRails">Number of Rails (for Vertical Pickets):</label>
             <input type="number" id="numRails" value="2" oninput="calculateFence()"> 
         </div>
-        <div>
-            <label for="railBoardLength">Rail Board Length (ft) (Used if Post Spacing is NOT 4, 6, or 8 ft):</label> 
-            <select id="railBoardLength" onchange="calculateFence()">
-                <option value="8" selected>8 ft</option>
-                <option value="10">10 ft</option>
-                <option value="12">12 ft</option>
-                <option value="16">16 ft</option>
-            </select>
-        </div>
         
         <h3 class="input-group-title">Baseboard/Kickboard</h3>
         <div>
-            <label for="addBaseboard">Add Baseboard/Kickboard?</label>
-            <select id="addBaseboard" onchange="toggleBaseboardOptions(); calculateFence();"> 
-                <option value="no" selected>No</option>
-                <option value="yes">Yes</option>
+            <label for="baseboardMaterialSize">Baseboard Material Size:</label>
+            <select id="baseboardMaterialSize" onchange="calculateFence()">
+                <option value="none" selected>None</option>
+                <option value="2x6">2x6</option>
+                <option value="2x12">2x12</option>
             </select>
-        </div>
-        <div id="baseboardOptionsContainer" class="hidden-options md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-x-6">
-            <div>
-                <label for="baseboardMaterialSize">Baseboard Material Size:</label>
-                <select id="baseboardMaterialSize" onchange="calculateFence()">
-                    <option value="2x4">2x4</option>
-                    <option value="2x6" selected>2x6</option>
-                    <option value="2x8">2x8</option>
-                    <option value="2x12">2x12</option> 
-                </select>
-            </div>
-            <div>
-                <label for="baseboardBoardLength">Baseboard Board Length (ft):</label>
-                <select id="baseboardBoardLength" onchange="calculateFence()">
-                    <option value="8" selected>8 ft</option>
-                    <option value="10">10 ft</option>
-                    <option value="12">12 ft</option>
-                    <option value="16">16 ft</option>
-                </select>
-            </div>
-            <div>
-                <label for="baseboardWoodType">Baseboard Wood Type:</label>
-                <select id="baseboardWoodType" onchange="calculateFence()">
-                    <option value="treated" selected>Treated Pine</option>
-                    <option value="cedar">Cedar</option>
-                </select>
-            </div>
         </div>
 
         <h3 class="input-group-title">Trim & Cap Boards</h3>
@@ -229,10 +271,10 @@
          <div>
             <label for="capBoardType">Type of Cap Board (on top):</label>
             <select id="capBoardType" onchange="calculateFence()">
-                <option value="none" selected>None</option>
-                <option value="2x4">2x4</option>
+                <option value="1x4">1x4</option>
+                <option value="2x4" selected>2x4</option>
                 <option value="2x6">2x6</option>
-                <option value="2x8">2x8</option> 
+                <option value="2x8">2x8</option>
             </select>
         </div>
         <div>
@@ -262,29 +304,7 @@
         </div>
         <div id="slidingGateWidthsContainer" class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-0 mt-0">
             </div>
-        <div>
-            <label for="useDifferentGatePosts">Use Different Gate Posts?</label>
-            <select id="useDifferentGatePosts" onchange="toggleGatePostOptions(); calculateFence();"> 
-                <option value="no" selected>No (Use Standard Posts)</option>
-                <option value="yes">Yes</option>
-            </select>
-        </div>
-        <div id="gatePostOptionsContainer" class="hidden-options md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-x-6">
-             <div>
-                <label for="gatePostType">Gate Post Type/Size:</label> 
-                <select id="gatePostType" onchange="calculateFence()">
-                     <option value="wood_treated_4x4">Wood - 4x4 Treated</option>
-                     <option value="wood_treated_4x6" selected>Wood - 4x6 Treated</option>
-                     <option value="wood_treated_6x6">Wood - 6x6 Treated</option>
-                     <option value="wood_cedar_4x4">Wood - 4x4 Cedar</option> 
-                     <option value="wood_cedar_4x6">Wood - 4x6 Cedar</option>
-                     <option value="wood_cedar_6x6">Wood - 6x6 Cedar</option>
-                     <option value="postMaster">Post Master</option>
-                     <option value="schedule20_2-3/8">Pipe - Sch 20 (2-3/8")</option>
-                     <option value="schedule40_2-3/8">Pipe - Sch 40 (2-3/8")</option>
-                </select>
-            </div>
-             </div>
+
          <div>
             <label for="useMetalGateFrames">Use Metal Frame for Gates?</label> <select id="useMetalGateFrames" onchange="calculateFence()">
                 <option value="no" selected>No (Use Wood Frame)</option>
@@ -308,33 +328,78 @@
                 <option value="Yes">Screws (All)</option>
             </select>
         </div>
+        
+        <h3 class="input-group-title">Labor Calculation Requirements</h3>
         <div>
-            <label for="screwCalcMethod">Screw Calculation Method:</label>
-            <select id="screwCalcMethod" onchange="calculateFence()">
-                <option value="Detailed" selected>Detailed (per connection)</option>
-                <option value="Simple">Simple (Item 27 Formula)</option> 
+            <label for="needsTearOut">Needs Tear Out?</label>
+            <select id="needsTearOut" onchange="calculateFence()">
+                <option value="no" selected>No</option>
+                <option value="yes">Yes</option>
             </select>
+        </div>
+        <div>
+            <label for="needsLineClearing">Needs Line Clearing?</label>
+            <select id="needsLineClearing" onchange="calculateFence()">
+                <option value="no" selected>No</option>
+                <option value="yes">Yes</option>
+            </select>
+        </div>
+        <div>
+            <label for="travelDistance">Travel Distance (miles):</label>
+            <input type="number" id="travelDistance" value="0" min="0" step="0.1" oninput="calculateFence()">
         </div>
          </div>
 
-    <div id="results" class="mt-10">
-        <h2 class="text-2xl md:text-3xl font-bold text-gray-700 mb-6">Estimated Materials & Cost:</h2>
-        <div id="resultsTableContainer" class="overflow-x-auto shadow-md rounded-lg"></div>
-        <p id="grandTotal" class="text-2xl font-bold text-right mt-6"></p>
-        <div id="errorMessage" class="text-red-600 mt-4"></div>
-        
-        <!-- CRM Integration Section -->
-        <div id="crm-integration" class="mt-8 p-6 border border-gray-200 rounded-lg bg-gray-50">
-            <h3 class="text-xl font-bold text-gray-700 mb-4">Save Options</h3>
-            
+    <div class="col-span-full mt-6 text-center">
+        <button id="calculateBtn" style="background-color: #8B2324; border: 2px solid #9F7B4F;" class="hover:bg-opacity-90 text-white font-bold py-3 px-8 rounded-lg shadow-lg transition duration-200 ease-in-out transform hover:scale-105">
+            Calculate
+        </button>
+        <div id="errorMessage" class="hidden"></div>
+    </div>
 
-            <div class="flex flex-col md:flex-row gap-4">
-                <button id="save-calculation-btn" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors" onclick="saveCalculation(window.lastCalculationResult)" style="display:block;">Save Calculation</button>
-                <button id="save-to-crm-btn" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors" onclick="saveCalculationToCrm(window.lastCalculationResult)" style="display:block;">Save & Create Estimate</button>
+    <div id="results" class="mt-10">
+        <!-- Materials Results Section -->
+        <div>
+            <h2 class="text-2xl md:text-3xl font-bold" style="color: #8B2324;">Materials Breakdown:</h2>
+            <div id="resultsTableContainer" class="overflow-x-auto shadow-md rounded-lg mt-6"></div>
+            <p id="grandTotal" class="text-2xl font-bold text-right mt-6" style="color: #8B2324;"></p>
+        </div>
+
+        <!-- Visual Separator -->
+        <div class="my-12 border-t-2" style="border-color: #C8A77D;"></div>
+
+        <!-- Labor Results Section -->
+        <div>
+            <h2 class="text-2xl md:text-3xl font-bold" style="color: #8B2324;">Labor & Total Project Cost:</h2>
+            <div id="laborErrorMessage" class="text-red-600 mt-4"></div>
+            <div id="laborResultsContainer" class="mt-6"></div>
+        </div>
+        
+        <!-- Save to CRM Section -->
+        <div class="mt-12 text-center">
+            <div id="saveMessage" class="mb-4 text-green-600 font-semibold hidden"></div>
+            <div id="saveError" class="mb-4 text-red-600 font-semibold hidden"></div>
+            <div class="flex flex-col sm:flex-row justify-center gap-4">
+                <button id="save-calculation-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg shadow-lg transition duration-200 ease-in-out transform hover:scale-105">
+                    Save Calculation
+                </button>
+                <button id="save-to-crm-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg shadow-lg transition duration-200 ease-in-out transform hover:scale-105">
+                    Save & Return to Profile
+                </button>
             </div>
         </div>
-    </div>
 </div>
+
+<!-- Initialize Supabase client first -->
+<script>
+  // Initialize Supabase client
+  const supabaseUrl = 'https://kdhwrlhzevzekoanusbs.supabase.co';
+  const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkaHdybGh6ZXZ6ZWtvYW51c2JzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzc1NTczNDUsImV4cCI6MjA1MzEzMzM0NX0.qAA2en6uQPoTDq9oivjfSHajQjY6VKFQ2ymtwgJAyx8';
+  
+  // Create the client and make it globally available
+  window.supabase = window.supabaseClient = supabase.createClient(supabaseUrl, supabaseAnonKey);
+  console.log('Supabase client initialized globally');
+</script>
 
 <!-- Our JavaScript files will be loaded at the end of the body -->
 <!-- Core calculation scripts must be loaded first and in the correct order -->
@@ -343,70 +408,114 @@
 <script src="woodcalc-items1-10.js"></script>
 <script src="woodcalc-items11-20.js"></script>
 <script src="woodcalc-items21-33.js"></script>
-<script src="woodcalc-main.js"></script>
-<!-- CRM integration scripts loaded after calculation scripts -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-    // Initialize Supabase globally
-    const supabaseUrl = 'https://kdhwrlhzevzekoanusbs.supabase.co';
-    const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkaHdybGh6ZXZ6ZWtvYW51c2JzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDU5MzI1NDUsImV4cCI6MjAyMTUwODU0NX0.PXkR_PYOUPJvWRQGYNOy94VhgI4G9hVZ4Q6ZQ4Q4Z4Q';
-    window.supabaseClient = supabase.createClient(supabaseUrl, supabaseAnonKey);
-    console.log('Global Supabase client initialized');
-</script>
-<script src="customer-integration.js"></script>
+<!-- Load CRM script before main script so save functions are available -->
 <script src="woodcalc-crm.js"></script>
+<script src="woodcalc-main.js"></script>
+<script src="woodcalc-labor.js"></script>
+<!-- Fix script for Supabase client -->
+<script src="fix_supabase.js"></script>
+<!-- Core calculation scripts only -->
 
 <script>
     // Initialize on page load
-    async function init() {
-        // First run onload to ensure calculation functionality is initialized
+    function init() {
+        // Run onload to initialize calculation functionality
         onload();
-        
-        // Then handle CRM integration after calculations are set up
-        try {
-            // Make sure customer ID is available globally
-            // Check for both 'customer_id' (primary) and 'customerId' (backward compatibility)
-            const urlParams = new URLSearchParams(window.location.search);
-            window.currentCustomerId = urlParams.get('customer_id') || urlParams.get('customerId');
-            console.log('Setting global customer ID:', window.currentCustomerId);
-            
-            // Initialize customer data form if available
-            if (typeof initializeCustomerData === 'function') {
-                try {
-                    await initializeCustomerData();
-                    console.log('Customer data initialized');
-                } catch (error) {
-                    console.error('Error initializing customer data:', error);
-                }
-            }
-            
-            // Initialize CRM integration
-            if (typeof initCrmIntegration === 'function') {
-                await initCrmIntegration();
-            } else {
-                console.error('CRM integration function not available');
-            }
-        } catch (error) {
-            console.error('Error in CRM initialization:', error);
-            // Errors in CRM integration should not break calculation functionality
-        }
     }
 
     function onload() {
         console.log('window.onload fired');
         // Initialize dynamic inputs
-        handleNumStretchesChange(); 
+        handleNumStretchesChange();
         handleNumSingleGatesChange(); 
         handleNumDoubleGatesChange();
         handleNumSlidingGatesChange();
         // Initialize conditional visibility
         toggleBaseboardOptions();
         toggleGatePostOptions();
+        // Initialize labor calculation features
+        if (typeof updateSlidingGateFields === 'function') {
+            updateSlidingGateFields();
+        }
         // Initial calculation
         calculateFence(); 
     }
 
     init();
+</script>
+
+
+<!-- Script to populate customer data from URL parameters -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const params = new URLSearchParams(window.location.search);
+
+    const customerId = params.get('customerId') || params.get('customer_id'); // Support both formats
+    const customerName = params.get('customerName') || params.get('customer_name');
+    const customerEmail = params.get('customerEmail') || params.get('customer_email');
+    const customerPhone = params.get('customerPhone') || params.get('customer_phone');
+    const customerAddress = params.get('customerAddress') || params.get('customer_address');
+    const returnUrl = params.get('returnUrl') || params.get('return_url') || '';
+
+    // Show the return button if we have a customer ID
+    if (customerId) {
+      const customerIdField = document.getElementById('calculator-customer-id');
+      if (customerIdField) customerIdField.textContent = customerId;
+      console.log('Calculator received Customer ID:', customerId);
+      
+      // Show the return button container
+      const returnButtonContainer = document.getElementById('return-button-container');
+      if (returnButtonContainer) {
+        returnButtonContainer.style.display = 'block';
+        
+        // Set up the return button click handler
+        const returnButton = document.getElementById('return-to-crm-btn');
+        if (returnButton) {
+          returnButton.addEventListener('click', function() {
+            // If we have a specific return URL, use it
+            if (returnUrl) {
+              window.location.href = returnUrl;
+            } else {
+              // Otherwise, try to construct a return URL to the customer profile
+              // This is a fallback that assumes a standard CRM URL structure
+              window.location.href = `/customers/${customerId}`;
+            }
+          });
+        }
+      }
+    }
+
+    if (customerName) {
+      const customerNameField = document.getElementById('calculator-customer-name');
+      if (customerNameField) customerNameField.textContent = customerName;
+    }
+
+    if (customerEmail) {
+      const customerEmailField = document.getElementById('calculator-customer-email');
+      if (customerEmailField) customerEmailField.textContent = customerEmail;
+    }
+
+    if (customerPhone) {
+      const customerPhoneField = document.getElementById('calculator-customer-phone');
+      if (customerPhoneField) customerPhoneField.textContent = customerPhone;
+    }
+
+    if (customerAddress) {
+      const customerAddressField = document.getElementById('calculator-customer-address');
+      if (customerAddressField) customerAddressField.textContent = customerAddress;
+    }
+
+    // Optional: Call a function to initialize/update calculator with this data
+    // if (typeof window.initializeCalculatorWithData === 'function') {
+    //   window.initializeCalculatorWithData({
+    //     id: customerId,
+    //     name: customerName,
+    //     email: customerEmail,
+    //     phone: customerPhone,
+    //     address: customerAddress
+    //   });
+    // }
+  });
 </script>
 </body>
 </html>
